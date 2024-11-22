@@ -18,6 +18,7 @@
         "symfony/dotenv": "7.1.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.1.*",
+        "symfony/mercure-bundle": "^0.3.9",
         "symfony/runtime": "7.1.*",
         "symfony/yaml": "7.1.*"
     },
@@ -69,6 +70,9 @@
             "allow-contrib": false,
             "require": "7.1.*",
             "docker": true
+        },
+        "runtime": {
+            "dotenv_overload": true
         }
     }
 }

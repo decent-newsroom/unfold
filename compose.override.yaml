@@ -1,6 +1,7 @@
 # Development environment override
 services:
   php:
+    image: newsroom-php
     build:
       context: .
       target: frankenphp_dev
