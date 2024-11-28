@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Newsroom{% endblock %}</title>
+
+    {# Link to CSS using the asset manager #}
+    <link rel="stylesheet" href="{{ asset('build/styles.css') }}">
+
+    {% block stylesheets %}
+        {# Additional styles can be added by child templates here #}
+    {% endblock %}
+</head>
+<body>
+<header>
+</header>
+
+<main>
+    {% block body %}
+        {# Main content goes here #}
+    {% endblock %}
+</main>
+
+<footer>
+    <p>&copy; {{ "now"|date("Y") }} Newsroom</p>
+</footer>
+
+{# Link to JavaScript using the asset manager #}
+<script src="{{ asset('build/scripts.js') }}"></script>
+
+{% block javascripts %}
+    {# Additional scripts can be added by child templates here #}
+{% endblock %}
+</body>
+</html>
