@@ -17,6 +17,6 @@ class DefaultController extends AbstractController
     #[\Symfony\Component\Routing\Attribute\Route('/', name: 'default')]
     public function index(): Response
     {
-        return $this->render('default/home.html.twig');
+        return $this->render('home.html.twig');
     }
 }

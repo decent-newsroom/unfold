@@ -1,0 +1,81 @@
+/**
+* Layout styles
+* This file contains the layout styles for the application
+* Layout has 5 main parts:
+* - Header (header)
+* - Left menu (nav)
+* - Main content (main)
+* - Right sidebar (aside)
+* - Footer (footer)
+**/
+
+
+
+
+/* Layout Container */
+.layout {
+    max-width: 100%;
+    width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-grow: 1;
+}
+
+nav {
+    width: auto;
+    flex-shrink: 0;
+    padding: 1em;
+    overflow-y: auto; /* Ensure the menu is scrollable if content is too long */
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav li {
+    margin: 0.5em 0;
+}
+
+nav a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+nav a:hover {
+    color: var(--color-text-mid);
+    text-decoration: none;
+}
+
+/* Main content */
+main {
+    flex-grow: 1;
+    padding: 1em;
+    word-break: break-word;
+}
+
+/* Right sidebar */
+aside {
+    width: 180px; /* Adjust the width based on the left menu */
+    padding: 1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    nav, aside {
+        display: none; /* Hide the sidebars on small screens */
+    }
+    main {
+        width: 100%;
+    }
+}
+
+/* Footer */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 1em 0;
+    position: relative;
+    width: 100%;
+}
