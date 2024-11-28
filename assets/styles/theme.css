@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Slab:ital,wght@0,100..700;1,100..700&display=swap');
+
+:root {
+    --color-bg: #121212;        /* Black background */
+    --color-bg-light: #333;    /* Lighter black background */
+    --color-text: #ffffff;      /* White text */
+    --color-text-mid: #eee;     /* Light gray text */
+    --color-text-contrast: #000; /* Black text for contrast */
+    --color-primary: #8e4585;   /* Plum primary color */
+    --color-secondary: #9CAF88; /*  secondary color */
+    --color-border: #333;    /* White border for contrast */
+    --font-family: 'Montserrat'; /* Set the Montserrat font as default */
+    --main-body-font: 'Newsreader'; /* Set the font for the main body */
+    --heading-font: 'Josefin Slab'; /* Set the font for headings */
+}

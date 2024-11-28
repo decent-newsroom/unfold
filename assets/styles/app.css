@@ -1,3 +1,332 @@
 body {
-    background-color: skyblue;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 100%;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-family), sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--heading-font), serif;
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--color-primary);
+    margin: 0 0 10px;
+}
+
+h1 {
+    font-size: 3.2rem;
+    margin-top: 0.25em;
+}
+
+h2 {
+    font-size: 3rem;
+}
+
+h3 {
+    font-size: 2.5rem;
+}
+
+h4 {
+    font-size: 2rem;
+}
+
+h5 {
+    font-size: 1.85rem;
+}
+
+h6 {
+    font-size: 1.65rem;
+}
+
+p {
+    margin: 0 0 15px;
+}
+
+.lede {
+    font-size: 1.5rem;
+    word-wrap: break-word;
+}
+
+strong, .strong {
+    color: var(--color-primary);
+}
+
+.hidden {
+    display: none;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a.card:hover {
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #151515;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+svg.icon {
+    width: 1em;
+    height: 1em;
+}
+
+.divider {
+    border: 2px solid var(--color-primary);
+    margin: 20px 0;
+}
+
+.hashtag {
+    color: var(--color-secondary);
+}
+
+.card {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    padding: 0;
+    margin: 20px 0;
+    border-radius: 0;  /* Sharp edges */
+}
+
+.card.bordered {
+    border: 2px solid var(--color-border);
+}
+
+.card-header {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.header__image {
+    position: relative;
+    width: 100%;
+    overflow: hidden; /* Ensures any overflow is hidden */
+}
+
+.header__image::before {
+    content: "";
+    display: block;
+    padding-top: 56.25%; /* 16:9 aspect ratio (9 / 16 * 100 = 56.25%) */
+}
+
+.header__image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image covers the entire area while maintaining its aspect ratio */
+}
+
+.card-body {
+    font-size: 1rem;
+}
+
+.card-footer {
+    font-size: 0.875rem;
+    text-align: right;
+    border-top: 2px solid var(--color-border);
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.lede {
+    font-size: 1.9em;
+    line-height: 1.25;
+    margin: 20px 0;
+    font-weight: lighter;
+}
+
+.header {
+    text-align: center;
+    z-index: 1000; /* Ensure it stays on top */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--color-bg); /* Black background */
+    border-bottom: 1px solid var(--color-border); /* White bottom border */
+}
+
+.header__categories ul {
+    display: flex;
+    justify-content: center;
+    gap: 2em;
+}
+
+.header__categories li {
+    list-style: none;
+}
+
+.header__logo img {
+    height: 40px; /* Adjust the height as needed */
+}
+
+.header__logo a:hover {
+    text-decoration: none;
+}
+
+.header__user {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.header__avatar img {
+    height: 40px; /* Adjust the avatar size as needed */
+    width: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.header__dropdown {
+    display: none;
+    position: absolute;
+    top: 50px; /* Adjust this depending on the header.html.twig height */
+    right: 0;
+    background-color: var(--color-text); /* White dropdown */
+    border: 2px solid var(--color-bg); /* Black border */
+    list-style: none;
+    padding: 10px 0;
+    z-index: 1000;
+    border-radius: 0; /* Sharp edges */
+}
+
+.header__dropdown ul {
+    margin: 0;
+    padding: 0;
+}
+
+.header__dropdown li {
+    padding: 10px 20px;
+}
+
+.header__dropdown li a {
+    color: var(--color-bg); /* Black text */
+    text-decoration: none;
+}
+
+.header__dropdown li a:hover {
+    background-color: var(--color-bg); /* Black background on hover */
+    color: var(--color-text); /* White text on hover */
+    display: block;
+}
+
+footer p {
+    margin: 0;
+}
+
+/* Tags container */
+.tags {
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;  /* Allows tags to wrap to the next line if needed */
+    gap: 10px;        /* Adds spacing between individual tags */
+}
+
+/* Individual tag */
+.tag {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-mid);
+    padding: 3px 6px;           /* Padding around the tag text */
+    border-radius: 20px;         /* Rounded corners (pill-shaped) */
+    font-size: 0.75em;            /* Slightly smaller text */
+    cursor: pointer;             /* Cursor turns to pointer for clickable tags */
+    text-decoration: none;       /* Removes any text decoration (e.g., underline) */
+    display: inline-block;       /* Makes sure each tag behaves like a block with padding */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+/* Hover effect for tags */
+.tag:hover {
+    color: var(--color-text-contrast);
+}
+
+/* Optional: Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .tag {
+        font-size: 0.8em;        /* Slightly smaller text for mobile */
+    }
+}
+
+
+.card.card__horizontal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .card-content {
+        flex: 1;
+        margin-right: 30px;
+        padding: 0 8px;
+    }
+
+    .card-image img {
+        width: 220px;
+        max-height: 220px;
+        object-fit: contain;
+    }
+}
+
+.article__image img {
+    width: 100%;
+}
+
+.badge {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-family: var(--font-family), sans-serif;
+    font-weight: bold;
+    font-size: 0.65em;
+    text-transform: uppercase;
+    margin-right: 5px;
+    vertical-align: super;
+}
+
+.badge.badge__secondary {
+    background-color: var(--color-secondary);
+}
+
+.avatar {
+    width: 24px;         /* Adjust the size as needed */
+    height: 24px;        /* Adjust the size as needed */
+    border-radius: 50%;   /* Makes the image circular */
+    object-fit: cover;    /* Ensures the image scales correctly */
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.alert {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-mid);
+    padding: 10px 20px; /* Padding around the text */
+    border-radius: 5px; /* Rounded corners */
+    margin: 20px 0; /* Spacing around the alert */
+}
+
+.alert.alert-success {
+    background-color: var(--color-secondary);
 }
