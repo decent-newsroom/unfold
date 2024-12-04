@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Newsroom{% endblock %}</title>
-
-    <link rel="stylesheet" href="{{ asset('build/styles.css') }}">
-
     {% block stylesheets %}
+    {% endblock %}
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </head>
 <body>
@@ -28,12 +28,8 @@
 </div>
 
 <footer>
-    <p>&copy; {{ "now"|date("Y") }} Newsroom</p>
+    <twig:Footer />
 </footer>
 
-<script src="{{ asset('build/scripts.js') }}"></script>
-
-{% block javascripts %}
-{% endblock %}
 </body>
 </html>

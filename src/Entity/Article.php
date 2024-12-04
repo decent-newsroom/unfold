@@ -5,17 +5,23 @@ namespace App\Entity;
 use App\Enum\EventStatusEnum;
 use App\Enum\IndexStatusEnum;
 use App\Enum\KindsEnum;
-use App\Repository\NostrEventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: NostrEventRepository::class)]
+/**
+ * Entity storing long-form articles
+ * NIP-23, kinds 30023, 30024
+ */
+#[ORM\Entity]
 class Article
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(length: 225, nullable: true)]
     private ?int $id = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private $raw = null;
 
     #[ORM\Column(length: 225, nullable: true)]
     private ?string $eventId = null;
@@ -58,9 +64,6 @@ class Article
 
     #[ORM\Column(nullable: true, enumType: IndexStatusEnum::class)]
     private ?IndexStatusEnum $indexStatus = IndexStatusEnum::NOT_INDEXED;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $imgUrl = null;
 
     // Local properties
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -277,18 +280,6 @@ class Article
         return $this;
     }
 
-    public function getImgUrl(): ?string
-    {
-        return $this->imgUrl;
-    }
-
-    public function setImgUrl(?string $imgUrl): static
-    {
-        $this->imgUrl = $imgUrl;
-
-        return $this;
-    }
-
     public function getRatingNegative(): ?int
     {
         return $this->ratingNegative;
@@ -316,5 +307,15 @@ class Article
     public function isDraft()
     {
         return $this->eventStatus === EventStatusEnum::PREVIEW;
+    }
+
+    public function getRaw(): null
+    {
+        return $this->raw;
+    }
+
+    public function setRaw(object $raw): void
+    {
+        $this->raw = $raw;
     }
 }

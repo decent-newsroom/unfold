@@ -7,8 +7,7 @@ namespace App\Twig\Components;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent]
-class Header
-{
+class Footer {
     public function __construct()
     {
     }

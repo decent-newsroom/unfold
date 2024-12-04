@@ -1,7 +1,7 @@
 # Development environment override
 services:
   php:
-    image: newsroom-php
+    image: docker.io/library/newsroom-php:latest
     build:
       context: .
       target: frankenphp_dev
