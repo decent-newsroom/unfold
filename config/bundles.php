@@ -11,6 +11,6 @@ return [
     Symfony\UX\TwigComponent\TwigComponentBundle::class => ['all' => true],
     Symfony\UX\LiveComponent\LiveComponentBundle::class => ['all' => true],
     Symfony\Bundle\MakerBundle\MakerBundle::class => ['dev' => true],
-    Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['local' => true, 'prod' => false],
+    Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['all' => true, 'prod' => false],
     Symfony\Bundle\SecurityBundle\SecurityBundle::class => ['all' => true],
 ];
