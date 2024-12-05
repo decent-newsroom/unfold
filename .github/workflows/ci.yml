@@ -47,12 +47,6 @@ jobs:
       -
         name: Check Mercure reachability
         run: curl -vkI --fail-with-body https://localhost/.well-known/mercure?topic=test
-      -  
-        name: Check file permissions
-        run: ls -l bin/console
-      -
-        name: Check user inside container
-        run: whoami
       -
         name: Create test database
         run: docker compose exec -T php bin/console -e test doctrine:database:create
