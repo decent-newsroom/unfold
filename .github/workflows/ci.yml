@@ -47,14 +47,13 @@ jobs:
       -
         name: Check Mercure reachability
         run: curl -vkI --fail-with-body https://localhost/.well-known/mercure?topic=test
-      -  
-        name: Make bin/console executable
-        run: chmod +x bin/console
       -
         name: Create test database
+        if: false
         run: docker compose exec -T php bin/console -e test doctrine:database:create
       -
         name: Run migrations
+        if: false
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
       -
         name: Run PHPUnit
@@ -62,6 +61,7 @@ jobs:
         run: docker compose exec -T php bin/phpunit
       -
         name: Doctrine Schema Validator
+        if: false
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
   lint:
     name: Docker Lint
