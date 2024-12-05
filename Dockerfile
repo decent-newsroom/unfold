@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	file \
 	gettext \
 	git \
+    libnss3-tools \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
@@ -41,8 +42,7 @@ ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
-RUN install-php-extensions pdo
-RUN install-php-extensions pdo_pgsql
+RUN install-php-extensions pdo pdo_pgsql
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
 

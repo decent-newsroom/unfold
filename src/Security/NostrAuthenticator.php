@@ -5,6 +5,7 @@ namespace App\Security;
 use App\Entity\Event;
 use App\Service\NostrClient;
 use Doctrine\ORM\EntityManagerInterface;
+use Mdanter\Ecc\Crypto\Signature\SchnorrSignature;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -20,7 +21,7 @@ use Symfony\Component\Serializer\Serializer;
 
 class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAuthenticatorInterface
 {
-    public function __construct(private readonly NostrClient $nostrClient, private readonly EntityManagerInterface $entityManager)
+    public function __construct(private readonly NostrClient $nostrClient)
     {
     }
 
@@ -42,27 +43,26 @@ class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAut
         $eventStr = base64_decode(substr($authHeader, 6), true);
         $encoders = [new JsonEncoder()];
         $normalizers = [new ObjectNormalizer()];
-
         $serializer = new Serializer($normalizers, $encoders);
         /** @var Event $event */
         $event = $serializer->deserialize($eventStr, Event::class, 'json');
         if (time() > $event->getCreatedAt() + 60) {
             throw new AuthenticationException('Expired');
         }
-        // TODO enable validity check after bug is fixed
-        // $validity = (new SchnorrSignature())->verify($event->getPubkey(), $event->getSig(), $event->getId());
-        // pretend all is well
-        $validity = true;
+        $validity = (new SchnorrSignature())->verify($event->getPubkey(), $event->getSig(), $event->getId());
         if (!$validity) {
             throw new AuthenticationException('Invalid Authorization header');
         }
 
+        // default, in case this is a plain key with no metadata event
+        $user = new \App\Entity\User();
+        $user->setNpub($event->getPubkey());
+
         try {
-            $user = $this->fetchUser($event->getPubkey());
+            $this->nostrClient->getMetadata([$event->getPubkey()]);
         } catch (\Exception) {
             // even if the user metadata not found, if sig is valid, login the pubkey
-            $user = new \App\Entity\User();
-            $user->setNpub($event->getPubkey());
+            // TODO log?
         }
 
         return new SelfValidatingPassport(
@@ -78,16 +78,6 @@ class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAut
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         return null;
-    }
-
-    /**
-     *
-     * @throws \Exception
-     */
-    private function fetchUser(string $publicKey): \App\Entity\User
-    {
-        $this->nostrClient->getMetadata([$publicKey]);
-        return $this->entityManager->getRepository(\App\Entity\User::class)->findOneBy(['npub' => $publicKey]);
     }
 
     public function isInteractive(): bool

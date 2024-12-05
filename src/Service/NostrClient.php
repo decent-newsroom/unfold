@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\User;
 use App\Enum\KindsEnum;
 use App\Factory\ArticleFactory;
+use App\Repository\UserEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use swentel\nostr\Filter\Filter;
@@ -20,6 +21,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class NostrClient
 {
     public function __construct(private readonly EntityManagerInterface $entityManager,
+                                private readonly UserEntityRepository $userEntityRepository,
                                 private readonly ArticleFactory $articleFactory,
                                 private readonly SerializerInterface    $serializer,
                                 private readonly LoggerInterface        $logger)
@@ -37,8 +39,7 @@ class NostrClient
         $filter = new Filter();
         $filter->setKinds([KindsEnum::LONGFORM]);
         // TODO make filters configurable
-        $filter->setSince(strtotime('-1 year')); //
-        $filter->setUntil(strtotime('-11 months')); //
+        $filter->setSince(strtotime('-1 day')); //
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
         // TODO make relays configurable
         $relays = new RelaySet();
@@ -115,7 +116,7 @@ class NostrClient
 
         try {
             $this->logger->info('Saving user', ['user' => $user]);
-            $this->entityManager->persist($user);
+            $this->userEntityRepository->findOrCreateByUniqueField($user);
             $this->entityManager->flush();
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());

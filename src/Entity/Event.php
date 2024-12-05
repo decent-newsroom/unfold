@@ -6,11 +6,11 @@ class Event
 {
     private string $id;
     private int $kind = 0;
-    private string $pubkey;
+    private string $pubkey = '';
     private string $content = '';
     private int $created_at = 0;
     private array $tags = [];
-    private string $sig;
+    private string $sig = '';
 
     public function getId(): string
     {
