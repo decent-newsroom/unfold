@@ -1,0 +1,57 @@
+form, form > div {
+    display: flex;
+    flex-direction: column;
+    clear: both;
+    margin-bottom: 1em;
+}
+
+label {
+    display: flex;
+    clear: both;
+}
+
+input {
+    display: flex;
+    clear: both;
+}
+
+input, textarea {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+    padding: 10px;
+    border-radius: 0;  /* Sharp edges */
+}
+
+input:focus, textarea:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: var(--color-text);
+    font-weight: lighter;
+}
+
+#editor_actions {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+}
+
+.image-with-preview {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+}
+
+.image-with-preview img.avatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 1em;
+}
+
+.image-with-preview input {
+    flex-grow: 1;
+}
