@@ -1,3 +1,5 @@
-<div{{ attributes }}>
-    <!-- component html -->
+<div {{ attributes }}>
+    {% for item in list %}
+        <twig:Molecules:Card :article="item" ></twig:Molecules:Card>
+    {% endfor %}
 </div>

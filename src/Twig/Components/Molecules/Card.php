@@ -8,4 +8,6 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 final class Card
 {
     public string $tag = 'div';
+    public string $category = '';
+    public object $article;
 }

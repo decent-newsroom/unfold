@@ -39,7 +39,7 @@ class NostrClient
         $filter = new Filter();
         $filter->setKinds([KindsEnum::LONGFORM]);
         // TODO make filters configurable
-        $filter->setSince(strtotime('-1 day')); //
+        $filter->setSince(strtotime('-1 week')); //
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
         // TODO make relays configurable
         $relays = new RelaySet();

@@ -2,8 +2,8 @@
     {% if app.user %}
         <p>Hello, {{ app.user.displayName }}</p>
 
-        <a class="btn btn-primary" href="/logout" data-action="live#$render">Log out</a>
+        <twig:Atoms:Button tag="a"  href="/logout" data-action="live#$render">Log out</twig:Atoms:Button>
     {% else %}
-        <button class="btn btn-primary" {{ stimulus_action('login', 'loginAct') }}>Log in</button>
+        <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>Log in</twig:Atoms:Button>
     {% endif %}
 </div>
