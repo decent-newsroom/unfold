@@ -65,9 +65,7 @@ class Converter
         // Instantiate the converter engine and start converting some Markdown!
         $converter = new MarkdownConverter($environment);
         $content = html_entity_decode($markdown);
-
-        dump($content);
-
+        
         return $converter->convert($content);
     }
 

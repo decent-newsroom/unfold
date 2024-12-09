@@ -24,8 +24,7 @@ class DefaultController extends AbstractController
     #[Route('/', name: 'default')]
     public function index(): Response
     {
-        $list = $this->entityManager->getRepository(Article::class)->findAll();
-        $current = array_slice($list, 0,10);
+        $list = $this->entityManager->getRepository(Article::class)->findBy([], ['createdAt' => 'DESC'], 10);
 
         $npubs = array_map(function($obj) {
             return $obj->getPubkey();
@@ -34,7 +33,7 @@ class DefaultController extends AbstractController
         $this->nostrClient->getMetadata(array_unique($npubs));
 
         return $this->render('home.html.twig', [
-            'list' => $current
+            'list' => $list
         ]);
     }
 }

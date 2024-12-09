@@ -30,12 +30,12 @@ class NostrSchemeParser  implements InlineParserInterface
         // The match is a Bech32 encoded string
         // decode it to get the parts
         $bechEncoded = substr($fullMatch, 6);  // Extract the part after "nostr:", i.e., "XXXX"
-        dump($bechEncoded);
+        // dump($bechEncoded);
 
         try {
             list($hrp, $tlv) = $this->bech32Decoder->decodeAndParseNostrBech32($bechEncoded);
-            dump($hrp);
-            dump($tlv);
+            // dump($hrp);
+            // dump($tlv);
             switch ($hrp) {
                 case 'npub':
                     $str = '';
@@ -76,7 +76,7 @@ class NostrSchemeParser  implements InlineParserInterface
                             $relays[] = implode('', array_map('chr', $item['value']));
                         }
                     }
-                    dump($relays ?? null);
+                    // dump($relays ?? null);
                     // TODO also potentially contains relays, author, and kind
                     $inlineContext->getContainer()->appendChild(new NostrSchemeData('nevent', $eventId, $relays ?? null, null, null));
                     break;
@@ -90,7 +90,7 @@ class NostrSchemeParser  implements InlineParserInterface
             }
 
         } catch (\Exception $e) {
-            dump($e->getMessage());
+            // dump($e->getMessage());
             return false;
         }
 

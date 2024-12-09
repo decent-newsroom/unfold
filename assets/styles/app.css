@@ -73,7 +73,6 @@ a:hover {
 a.card:hover {
     text-decoration: none;
     cursor: pointer;
-    background-color: #151515;
 }
 
 img {

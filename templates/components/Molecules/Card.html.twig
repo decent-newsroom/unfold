@@ -3,6 +3,9 @@
     <div class="card-body">
         <small>{{ article.createdAt|date('F j') }}</small>
         <h1 class="card-title">{{ article.title }}</h1>
+        <p class="lede">
+            {{ article.summary }}
+        </p>
     </div>
     <div class="card-footer">
         <small><twig:Molecules:UserFromNpub npub="{{ article.pubkey }}" /></small>
