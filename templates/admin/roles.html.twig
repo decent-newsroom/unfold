@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>{{ 'heading.roles'|trans }}</h1>
+
+    {# Flash messages for feedback #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# Form for adding a new role #}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+
+{% endblock %}
