@@ -7,12 +7,15 @@
 .article-main ul,
 .article-main ol,
 .article-main blockquote,
-.article-main table,
-.lede {
+.article-main table {
     font-family: var(--main-body-font), serif;
     color: var(--color-text-mid);
     font-size: 1.4rem;
     line-height: 1.75;
+}
+
+.article-main .lede {
+    font-size: 1.9rem;
 }
 
 .article-main table {

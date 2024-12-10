@@ -8,6 +8,6 @@
         </p>
     </div>
     <div class="card-footer">
-        <small><twig:Molecules:UserFromNpub npub="{{ article.pubkey }}" /></small>
+        <a href="{{ path('author-profile', { npub: article.pubkey })}}"><twig:Molecules:UserFromNpub npub="{{ article.pubkey }}" /></a>
     </div>
 </{{ tag }}>

@@ -9,6 +9,7 @@ import './styles/theme.css';
 import './styles/app.css';
 import './styles/layout.css';
 import './styles/button.css';
+import './styles/card.css';
 import './styles/article.css';
 import './styles/form.css';
 
