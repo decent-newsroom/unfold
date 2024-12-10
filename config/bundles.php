@@ -13,4 +13,5 @@ return [
     Symfony\Bundle\MakerBundle\MakerBundle::class => ['all' => true, 'prod' => false],
     Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['all' => true, 'prod' => false],
     Symfony\Bundle\SecurityBundle\SecurityBundle::class => ['all' => true],
+    Symfony\UX\Icons\UXIconsBundle::class => ['all' => true],
 ];

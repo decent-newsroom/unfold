@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1><twig:atoms:NameOrNpub :author="author"></twig:atoms:NameOrNpub></h1>
+    <p class="lede">
+        {{ author.about }}
+    </p>
+
+    <div>
+        <twig:Organisms:CardList :list="articles"></twig:Organisms:CardList>
+    </div>
+{% endblock %}

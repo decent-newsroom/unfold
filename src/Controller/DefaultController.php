@@ -24,7 +24,11 @@ class DefaultController extends AbstractController
     #[Route('/', name: 'default')]
     public function index(): Response
     {
-        $list = $this->entityManager->getRepository(Article::class)->findBy([], ['createdAt' => 'DESC'], 10);
+        $original = $this->entityManager->getRepository(Article::class)->findBy([], ['createdAt' => 'DESC'], 10);
+
+        $list = array_filter($original, function ($obj) {
+            return !empty($obj->getSlug());
+        });
 
         $npubs = array_map(function($obj) {
             return $obj->getPubkey();

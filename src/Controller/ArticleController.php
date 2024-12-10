@@ -4,8 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\User;
+use App\Service\NostrClient;
 use App\Util\CommonMark\Converter;
 use Doctrine\ORM\EntityManagerInterface;
+use League\CommonMark\Exception\CommonMarkException;
+use PHPUnit\Exception;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,11 +18,11 @@ use Symfony\Component\Routing\Attribute\Route;
 class ArticleController  extends AbstractController
 {
     /**
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|CommonMarkException
      */
     #[Route('/article/d/{slug}', name: 'article-slug')]
     public function article(EntityManagerInterface $entityManager, CacheItemPoolInterface $articlesCache,
-                            Converter $converter, $slug): Response
+                            NostrClient $nostrClient, Converter $converter, $slug): Response
     {
         $article = null;
         // check if an item with same eventId already exists in the db
@@ -50,6 +53,11 @@ class ArticleController  extends AbstractController
         }
 
         // find user by npub
+        try {
+            $nostrClient->getMetadata([$article->getPubkey()]);
+        } catch (\Exception) {
+            // eh
+        }
         $author = $entityManager->getRepository(User::class)->findOneBy(['npub' => $article->getPubkey()]);
 
         return $this->render('Pages/article.html.twig', [

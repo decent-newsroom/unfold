@@ -8,13 +8,16 @@
         {% if author %}
             <div class="byline">
                 <span>
-                    {{ 'text.byline'|trans }} <a href="{{ path('author', {'npub': author.npub}) }}">
-                        <twig:NameOrNpub  displayName="{{ author.displayName }}" name="{{ author.name }}" npub="{{ author.npub }}" />
+                    {{ 'text.byline'|trans }} <a href="{{ path('author-profile', {'npub': author.npub}) }}">
+                        <twig:atoms:NameOrNpub :author="author" />
                     </a>
                 </span>
                 <span>
-                    <small><twig:ux:icon name="heroicons:pencil" class="icon" /> {{ article.createdAt|date('F j, Y') }}</small><br>
-                    {% if article.publishedAt is not null %}<small>{{ article.publishedAt|date('F j, Y') }}</small>{% endif %}
+                    {% if article.publishedAt is not null %}
+                        <small>{{ article.publishedAt|date('F j, Y') }}</small>
+                    {% else %}
+                        <small><twig:ux:icon name="heroicons:pencil" class="icon" /> {{ article.createdAt|date('F j, Y') }}</small><br>
+                    {% endif %}
                 </span>
             </div>
         {% endif %}

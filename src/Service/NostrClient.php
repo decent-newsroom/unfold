@@ -77,6 +77,7 @@ class NostrClient
         // TODO make relays configurable
         $relays = new RelaySet();
         $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
+        $relays->addRelay(new Relay('wss://nos.lol')); // default metadata aggregator
 
         $request = new Request($relays, $requestMessage);
 

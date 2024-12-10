@@ -1,0 +1,9 @@
+<span>
+    {% if author.displayName %}
+        {{ author.displayName }}
+    {% elseif author.name %}
+        {{ author.name }}
+    {% else %}
+        {{ author.npub }}
+    {% endif %}
+</span>
