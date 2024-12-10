@@ -1,9 +1,25 @@
 <div {{ attributes.defaults(stimulus_controller('login')) }}>
     {% if app.user %}
         <p>Hello, {{ app.user.displayName }}</p>
-
-        <twig:Atoms:Button tag="a"  href="/logout" data-action="live#$render">Log out</twig:Atoms:Button>
+        {% if is_granted('ROLE_ADMIN') %}
+        <ul>
+            <li>
+                <a href="{{ path('admin_roles') }}">{{ 'heading.roles'|trans }}</a>
+            </li>
+        </ul>
+        {% endif %}
+        <ul>
+            <li>
+                <a href="#">Write an article</a>
+            </li>
+            <li>
+                <a href="#">Create a journal</a>
+            </li>
+            <li>
+                <a href="/logout" data-action="live#$render">{{ 'heading.logout'|trans }}</a>
+            </li>
+        </ul>
     {% else %}
-        <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>Log in</twig:Atoms:Button>
+        <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>{{ 'heading.logIn'|trans }}</twig:Atoms:Button>
     {% endif %}
 </div>

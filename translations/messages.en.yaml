@@ -1,4 +1,6 @@
 text:
-    byline: 'By'
+  byline: 'By'
 heading:
-    roles: 'Roles'
+  roles: 'Roles'
+  logout: 'Log out'
+  logIn: 'Log in'

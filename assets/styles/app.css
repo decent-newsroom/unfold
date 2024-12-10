@@ -65,7 +65,7 @@ strong, .strong {
 }
 
 a {
-    color: var(--color-primary);
+    color: var(--color-secondary);
     text-decoration: none;
 }
 
@@ -168,6 +168,10 @@ svg.icon {
 
 .header__categories li {
     list-style: none;
+}
+
+.header__logo h1 {
+    font-weight: bold;
 }
 
 .header__logo img {

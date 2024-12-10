@@ -17,7 +17,7 @@ class UserEntityRepository extends ServiceEntityRepository
     {
         $entity = $this->findOneBy(['npub' => $user->getNpub()]);
 
-        if ($entity) {
+        if (!!$entity) {
             $user->setId($entity->getId());
         }
         $this->entityManager->persist($user);

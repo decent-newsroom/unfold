@@ -22,10 +22,10 @@ class User implements UserInterface
     #[ORM\Column(unique: true)]
     private ?string $npub = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?string $name = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?string $displayName = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

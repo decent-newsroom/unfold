@@ -3,12 +3,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Slab:ital,wght@0,100..700;1,100..700&display=swap');
 
 :root {
-    --color-bg: #121212;        /* Black background */
-    --color-bg-light: #333;    /* Lighter black background */
+    --color-bg: #222;        /* Black background */
+    --color-bg-light: #444;    /* Lighter black background */
+    --color-bg-primary: #2b1a2b;
     --color-text: #ffffff;      /* White text */
     --color-text-mid: #eee;     /* Light gray text */
     --color-text-contrast: #000; /* Black text for contrast */
-    --color-primary: #8e4585;   /* Plum primary color */
+    --color-primary: #a2559c;   /* Plum primary color */
     --color-secondary: #9CAF88; /*  secondary color */
     --color-border: #333;    /* White border for contrast */
     --font-family: 'Montserrat'; /* Set the Montserrat font as default */
