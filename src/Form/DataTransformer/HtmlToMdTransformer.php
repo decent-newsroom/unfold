@@ -22,7 +22,6 @@ class HtmlToMdTransformer implements DataTransformerInterface
      */
     public function transform(mixed $value): mixed
     {
-        dump($value);
         if ($value === null) {
             return '';
         }
@@ -37,7 +36,6 @@ class HtmlToMdTransformer implements DataTransformerInterface
      */
     public function reverseTransform(mixed $value): mixed
     {
-        dump($value);
         if (!$value) {
             return '';
         }

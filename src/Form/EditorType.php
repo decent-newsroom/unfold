@@ -34,7 +34,7 @@ class EditorType extends AbstractType
             ->add('content', QuillType::class, [
                 'required' => false,
                 'attr' => ['placeholder' => 'Enter content', 'class' => 'form-control']])
-            ->add('imgUrl', UrlType::class, [
+            ->add('image', UrlType::class, [
                 'required' => false,
                 'label' => 'Image URL',
                 'attr' => ['placeholder' => 'Enter image URL', 'class' => 'form-control']])

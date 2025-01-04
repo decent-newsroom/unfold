@@ -8,7 +8,7 @@ framework:
                 type: 'method'
                 property: 'currentPlace'
             supports:
-                - App\Entity\LongFormEvent
+                - App\Entity\Article
             initial_marking: preview
             places:
                 - preview
