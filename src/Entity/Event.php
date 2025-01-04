@@ -2,14 +2,29 @@
 
 namespace App\Entity;
 
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * Nostr events
+ */
+#[ORM\Entity]
 class Event
 {
+    #[ORM\Id]
+    #[ORM\Column(length: 225)]
     private string $id;
+    #[ORM\Column(type: Types::INTEGER)]
     private int $kind = 0;
+    #[ORM\Column(length: 255)]
     private string $pubkey = '';
+    #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
+    #[ORM\Column(type: Types::BIGINT)]
     private int $created_at = 0;
+    #[ORM\Column(type: Types::JSON)]
     private array $tags = [];
+    #[ORM\Column(length: 255)]
     private string $sig = '';
 
     public function getId(): string
@@ -83,4 +98,24 @@ class Event
     }
 
 
+    public function getTitle(): ?string
+    {
+        foreach ($this->getTags() as $tag) {
+            if (array_key_first($tag) === 'title') {
+                return $tag['title'];
+            }
+        }
+        return null;
+    }
+
+    public function getSlug(): ?string
+    {
+        foreach ($this->getTags() as $tag) {
+            if (array_key_first($tag) === 'd') {
+                return $tag['d'];
+            }
+        }
+
+        return null;
+    }
 }

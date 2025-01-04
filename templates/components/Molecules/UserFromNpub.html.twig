@@ -1,5 +1,5 @@
 {% if user %}
-    <span>{{ user.displayName }}</span>
+    <twig:Atoms:NameOrNpub :author="user" />
 {% else %}
     <span>{{ npub }}</span>
 {% endif %}

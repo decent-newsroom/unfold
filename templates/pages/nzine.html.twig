@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        {# TODO replace with main index data #}
+        <h1>{{ index.title }}</h1>
+        <p>{{ index.slug }}</p>
+        <div>
+            <nav>
+                {# TODO replace this with a loop over the main index #}
+                {% for cat in nzine.mainCategories %}
+                    <a href="{{ path('nzine_category', {npub: nzine.npub, cat: cat.title}) }}">{{ cat.title }}</a>
+                {% endfor %}
+            </nav>
+        </div>
+        <br>
+
+        <twig:IndexTabs :index="index" />
+
+        {% if list is defined %}
+            <twig:Organisms:CardList :list="list" />
+        {% endif %}
+    </div>
+{% endblock %}

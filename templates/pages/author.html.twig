@@ -6,7 +6,13 @@
         {{ author.about }}
     </p>
 
-    <div>
-        <twig:Organisms:CardList :list="articles"></twig:Organisms:CardList>
-    </div>
+    {% if nzine %}
+        <a href="{{ path('nzine_view', {npub: author.npub}) }}">View as N-Zine</a>
+    {% endif %}
+
+    <twig:Organisms:CardList :list="articles"></twig:Organisms:CardList>
+{% endblock %}
+
+{% block aside %}
+    <twig:Organisms:ZineList :nzines="nzines" />
 {% endblock %}

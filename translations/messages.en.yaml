@@ -1,6 +1,8 @@
 text:
   byline: 'By'
 heading:
-  roles: 'Roles'
-  logout: 'Log out'
-  logIn: 'Log in'
+    roles: 'Roles'
+    logout: 'Log out'
+    logIn: 'Log in'
+    createNzine: 'Create an N-Zine'
+    editNzine: 'Edit your N-Zine'

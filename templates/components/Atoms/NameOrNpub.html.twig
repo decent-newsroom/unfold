@@ -1,7 +1,7 @@
 <span>
-    {% if author.displayName %}
+    {% if author.displayName is not empty %}
         {{ author.displayName }}
-    {% elseif author.name %}
+    {% elseif author.name is not empty %}
         {{ author.name }}
     {% else %}
         {{ author.npub }}

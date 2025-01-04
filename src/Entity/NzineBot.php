@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Entity;
+
+use App\Service\EncryptionService;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
+
+
+#[ORM\Entity]
+class NzineBot
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $encryptedNsec = null;
+    #[Ignore]
+    private ?string $nsec = null;
+
+    public function __construct(private readonly EncryptionService $encryptionService)
+    {
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getNsec(): ?string
+    {
+        if (null === $this->nsec && null !== $this->encryptedNsec) {
+            $this->nsec = $this->encryptionService->decrypt($this->encryptedNsec);
+        }
+        return $this->nsec;
+    }
+
+    public function setNsec(?string $nsec): self
+    {
+        $this->nsec = $nsec;
+        $this->encryptedNsec = $this->encryptionService->encrypt($nsec);
+        return $this;
+    }
+}

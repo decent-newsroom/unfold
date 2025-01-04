@@ -5,6 +5,7 @@ services:
         context: .
         dockerfile: Dockerfile
     environment:
+      APP_ENCRYPTION_KEY: '%env(APP_ENCRYPTION_KEY)%'
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
       MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}

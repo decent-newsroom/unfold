@@ -22,6 +22,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
     font-size: 3.2rem;
     margin-top: 0.25em;
+    font-weight: 600;
 }
 
 h2 {
@@ -319,8 +320,6 @@ footer p {
 }
 
 .alert {
-    background-color: var(--color-bg-light);
-    color: var(--color-text-mid);
     padding: 10px 20px; /* Padding around the text */
     border-radius: 5px; /* Rounded corners */
     margin: 20px 0; /* Spacing around the alert */
@@ -328,4 +327,40 @@ footer p {
 
 .alert.alert-success {
     background-color: var(--color-secondary);
+    color: var(--color-text-contrast);
+}
+
+/* Tabs Container */
+.nav-tabs {
+    display: flex;           /* Arrange items in a row */
+    justify-content: center;
+    padding: 0;              /* Remove padding */
+    margin: 0;               /* Remove margin */
+    list-style: none;        /* Remove list item styling */
+}
+
+/* Individual Tab Item */
+.nav-tabs .nav-item {
+    margin: 0;               /* No margin around list items */
+}
+
+/* NON-Active Tab */
+.nav-tabs .nav-link {
+    color: var(--color-text);
+    background-color: transparent;
+    border: none;
+}
+
+
+/* Active Tab */
+.nav-tabs .nav-link.active {
+    color: var(--color-text-contrast);
+    background-color: var(--color-primary);
+    font-weight: bold;
+}
+
+/* Content Container */
+.tab-content {
+    padding: 15px;          /* Spacing inside the content */
+    border-top: none;       /* Remove border overlap with active tab */
 }

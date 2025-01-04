@@ -10,10 +10,13 @@
         {% endif %}
         <ul>
             <li>
+                <a href="{{ path('author-profile', {npub: app.user.npub }) }}">Profile</a>
+            </li>
+            <li>
                 <a href="#">Write an article</a>
             </li>
             <li>
-                <a href="#">Create a journal</a>
+                <a href="{{ path('nzine_index') }}">{{ 'heading.createNzine'|trans }}</a>
             </li>
             <li>
                 <a href="/logout" data-action="live#$render">{{ 'heading.logout'|trans }}</a>

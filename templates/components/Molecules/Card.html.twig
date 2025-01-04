@@ -1,8 +1,9 @@
+{% if article is defined %}
 <{{ tag }} {{ attributes }}>
     <div class="card-header"><small class="text-uppercase">{{ category }}</small></div>
     <div class="card-body">
         <small>{{ article.createdAt|date('F j') }}</small>
-        <h1 class="card-title">{{ article.title }}</h1>
+        <h2 class="card-title">{{ article.title }}</h2>
         <p class="lede">
             {{ article.summary }}
         </p>
@@ -11,3 +12,12 @@
         <a href="{{ path('author-profile', { npub: article.pubkey })}}"><twig:Molecules:UserFromNpub npub="{{ article.pubkey }}" /></a>
     </div>
 </{{ tag }}>
+{% endif %}
+{% if user is defined %}
+<{{ tag }} {{ attributes }}>
+    <div class="card-body">
+        <h3 class="card-title">{{ user.name }}</h3>
+        <p>{{ user.about }}</p>
+    </div>
+</{{ tag }}>
+{% endif %}

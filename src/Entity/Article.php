@@ -5,14 +5,18 @@ namespace App\Entity;
 use App\Enum\EventStatusEnum;
 use App\Enum\IndexStatusEnum;
 use App\Enum\KindsEnum;
+use App\Repository\ArticleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Entity storing long-form articles
+ * Needed beyond the Event entity, because of the local functionalities built on top of the original events
+ * - editor
+ * - indexing and search
  * NIP-23, kinds 30023, 30024
  */
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article
 {
     #[ORM\Id]

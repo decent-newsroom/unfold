@@ -1,0 +1,5 @@
+<div {{ attributes }}>
+    {% for item in nzines %}
+        <twig:Molecules:Card class="card user" :npub="item.npub" tag="a" href="{{ path('author-profile', {npub: item.npub}) }}" ></twig:Molecules:Card>
+    {% endfor %}
+</div>
