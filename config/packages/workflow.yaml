@@ -1,2 +1,40 @@
 framework:
-    workflows: null
+    workflows:
+        article_publishing:
+            type: 'workflow'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'currentPlace'
+            supports:
+                - App\Entity\LongFormEvent
+            initial_marking: preview
+            places:
+                - preview
+                - draft
+                - revised
+                - published
+                - edited
+            transitions:
+                to_draft:
+                    from: preview
+                    to:   draft
+                to_revision:
+                    from: draft
+                    to:   revised
+                publish_preview:
+                    from: preview
+                    to:   published
+                publish_draft:
+                    from: draft
+                    to:   published
+                publish_revised:
+                    from: revised
+                    to:   published
+                edit:
+                    from: published
+                    to:   edited
+                re-edit:
+                    from: edited
+                    to:   edited
