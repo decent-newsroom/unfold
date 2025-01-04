@@ -40,6 +40,7 @@
         "symfony/twig-bundle": "7.1.*",
         "symfony/ux-icons": "^2.22",
         "symfony/ux-live-component": "^2.21",
+        "symfony/workflow": "7.1.*",
         "symfony/yaml": "7.1.*",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^3.15"
