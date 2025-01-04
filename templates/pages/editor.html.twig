@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme form _self %}
+
+{% block quill_widget %}
+    <div {{ stimulus_controller('quill') }} class="quill" data-id="{{ id }}" >
+        <div id="editor">
+            {{ value|raw }}
+        </div>
+    </div>
+    <input type="hidden" {{ block('widget_attributes') }} value="{{ value }}" />
+{% endblock %}
+
+
+{% block body %}
+
+    {{ form_start(form) }}
+    {{ form_end(form) }}
+
+{% endblock %}
