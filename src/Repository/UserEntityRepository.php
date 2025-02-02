@@ -17,10 +17,11 @@ class UserEntityRepository extends ServiceEntityRepository
     {
         $entity = $this->findOneBy(['npub' => $user->getNpub()]);
 
-        if (!!$entity) {
+        if ($entity !== null) {
             $user->setId($entity->getId());
+        } else {
+            $this->entityManager->persist($user);
         }
-        $this->entityManager->persist($user);
 
         return $user;
     }

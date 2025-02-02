@@ -38,6 +38,9 @@ class Nzine
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $slug = null;
 
+    #[ORM\Column(type: 'string')]
+    private string $state = 'draft';
+
     public function __construct()
     {
         $this->mainCategories = new ArrayCollection();
@@ -124,5 +127,15 @@ class Nzine
     public function setSlug(?string $slug): void
     {
         $this->slug = $slug;
+    }
+
+    public function getState(): string
+    {
+        return $this->state;
+    }
+
+    public function setState(string $state): void
+    {
+        $this->state = $state;
     }
 }

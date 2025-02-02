@@ -14,10 +14,12 @@ enum KindsEnum: int
     case CURATION_SET = 30004; // NIP-51
     case LONGFORM = 30023; // NIP-23
     case LONGFORM_DRAFT = 30024; // NIP-23
+    case PUBLICATION_INDEX = 30040;
     case CONTENT_SEARCH = 5302;
     case CONTENT_INDEX = 5312;
     case CONTENT_SEARCH_RESULT = 6302;
     case CONTENT_INDEX_RESULT = 6312;
     case HIGHLIGHTS = 9802;
+    case RELAY_LIST = 10002; // NIP-65, Relay list metadata
     case APP_DATA = 30078; // NIP-78, Arbitrary custom app data
 }

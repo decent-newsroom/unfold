@@ -39,7 +39,7 @@ class Article
     #[ORM\Column(nullable: true, enumType: KindsEnum::class)]
     private ?KindsEnum $kind = null;
 
-    #[ORM\Column(length: 225, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

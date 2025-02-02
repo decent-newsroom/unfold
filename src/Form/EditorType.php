@@ -26,22 +26,22 @@ class EditorType extends AbstractType
             ->add('title', TextType::class, [
                 'required' => false,
                 'sanitize_html' => true,
-                'attr' => ['placeholder' => 'Enter title', 'class' => 'form-control']])
+                'attr' => ['placeholder' => 'Awesome article', 'class' => 'form-control']])
             ->add('summary', TextareaType::class, [
                 'required' => false,
                 'sanitize_html' => true,
-                'attr' => ['placeholder' => 'Enter summary', 'class' => 'form-control']])
+                'attr' => ['class' => 'form-control']])
             ->add('content', QuillType::class, [
                 'required' => false,
                 'attr' => ['placeholder' => 'Enter content', 'class' => 'form-control']])
             ->add('image', UrlType::class, [
                 'required' => false,
-                'label' => 'Image URL',
-                'attr' => ['placeholder' => 'Enter image URL', 'class' => 'form-control']])
+                'label' => 'Cover image URL',
+                'attr' => ['class' => 'form-control']])
             ->add('topics', TextType::class, [
                 'required' => false,
                 'sanitize_html' => true,
-                'help' => 'Separate tags with commas',
+                'help' => 'Separate tags with commas, skip #',
                 'attr' => ['placeholder' => 'Enter tags', 'class' => 'form-control']])
             ->add(
                 $builder->create('actions', FormType::class,

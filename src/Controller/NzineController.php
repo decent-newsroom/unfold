@@ -7,21 +7,17 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\Event as EventEntity;
 use App\Entity\Nzine;
-use App\Entity\NzineBot;
 use App\Entity\User;
 use App\Enum\KindsEnum;
-use App\Enum\RolesEnum;
 use App\Form\NzineBotType;
 use App\Form\NzineType;
 use App\Service\EncryptionService;
 use App\Service\NostrClient;
+use App\Service\NzineWorkflowService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use swentel\nostr\Event\Event;
-use swentel\nostr\Key\Key;
-use swentel\nostr\Message\EventMessage;
-use swentel\nostr\Relay\Relay;
 use swentel\nostr\Sign\Sign;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,92 +34,23 @@ class NzineController extends AbstractController
      * @throws \JsonException
      */
     #[Route('/nzine', name: 'nzine_index')]
-    public function index(Request $request, EncryptionService $encryptionService, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, NzineWorkflowService $nzineWorkflowService): Response
     {
         $form = $this->createForm(NzineBotType::class);
         $form->handleRequest($request);
         $user = $this->getUser();
 
-        // TODO change into a workflow
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            // create NZine bot
-            $key = new Key();
-            $private_key = '8c55771e896581fffea62c6440e306d502630e9dbd067e484bf6fc9c83ede28c';
-            // $private_key = $key->generatePrivateKey();
-            // $bot = new NzineBot($encryptionService);
-            // $bot->setNsec($private_key);
-            $bot = $entityManager->getRepository(NzineBot::class)->find(1);
-            //$entityManager->persist($bot);
-            //$entityManager->flush();
-            $profileContent = [
-                'name' => $data['name'],
-                'about' => $data['about'],
-                'bot' => true
-            ];
+            // init object
+            $nzine = $nzineWorkflowService->init();
+            // create bot and nzine, save to persistence
+            $nzine = $nzineWorkflowService->createProfile($nzine, $data['name'], $data['about'], $user);
+            // create main index
+            $nzineWorkflowService->createMainIndex($nzine, $data['name'], $data['about']);
 
-            // publish bot profile
-            $profileEvent = new Event();
-            $profileEvent->setKind(0);
-            $profileEvent->setContent(json_encode($profileContent));
-            $signer = new Sign();
-            $signer->signEvent($profileEvent, $private_key);
-            $eventMessage = new EventMessage($profileEvent);
-            $relayUrl = 'wss://purplepag.es';
-            $relay = new Relay($relayUrl);
-            $relay->setMessage($eventMessage);
-            // $result = $relay->send();
-
-            // create NZine entity
-            $nzine = new Nzine();
-            $public_key  = $key->getPublicKey($private_key);
-            $nzine->setNpub($public_key);
-            $nzine->setNzineBot($bot);
-            $nzine->setEditor($user->getUserIdentifier());
-            // $entityManager->persist($nzine);
-            // $entityManager->flush();
-
-            // TODO add EDITOR role to the user
-            $role = RolesEnum::EDITOR->value;
-            $user = $entityManager->getRepository(User::class)->findOneBy(['npub' => $user->getUserIdentifier()]);
-            $user->addRole($role);
-            // $entityManager->persist($user);
-            // $entityManager->flush();
-
-
-            $slugger = new AsciiSlugger();
-            $title = $profileContent['name'];
-            $slug = 'nzine-'.$slugger->slug($title)->lower().'-'.rand(10000,99999);
-            // create NZine main index
-            $index = new Event();
-            $index->setKind(KindsEnum::PUBLICATION_INDEX->value);
-
-            $index->addTag(['d' => $slug]);
-            $index->addTag(['title' => $title]);
-            $index->addTag(['summary' => $profileContent['about']]);
-            $index->addTag(['auto-update' => 'yes']);
-            $index->addTag(['type' => 'magazine']);
-            $signer = new Sign();
-            $signer->signEvent($index, $private_key);
-            // save to persistence, first map to EventEntity
-            $serializer = new Serializer([new ObjectNormalizer()],[new JsonEncoder()]);
-            $i = $serializer->deserialize($index->toJson(), EventEntity::class, 'json');
-            // don't save any more for now
-            $entityManager->persist($i);
-            // $entityManager->flush();
-            // TODO publish index to relays
-
-            // TODO remove this, this is temporary, to not create a host of nzines
-            $nzine = $entityManager->getRepository(Nzine::class)->findOneBy(['npub' => $nzine->getNpub()]);
-            $nzine->setSlug($slug);
-            $entityManager->persist($nzine);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('nzine_edit', ['npub' => $public_key ]);
+            return $this->redirectToRoute('nzine_edit', ['npub' => $nzine->getNpub() ]);
         }
-        // on submit, create a key pair and save it securely
-        // create a new NZine entity and link it to the key pair
-        // then redirect to edit
 
         return $this->render('pages/nzine-editor.html.twig', [
             'form' => $form
@@ -132,6 +59,7 @@ class NzineController extends AbstractController
 
     #[Route('/nzine/{npub}', name: 'nzine_edit')]
     public function edit(Request $request, $npub, EntityManagerInterface $entityManager,
+                         EncryptionService $encryptionService,
                          ManagerRegistry $managerRegistry, NostrClient $nostrClient): Response
     {
         $nzine = $entityManager->getRepository(Nzine::class)->findOneBy(['npub' => $npub]);
@@ -140,9 +68,20 @@ class NzineController extends AbstractController
         }
         try {
             $bot = $entityManager->getRepository(User::class)->findOneBy(['npub' => $npub]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // sth went wrong, but whatever
             $managerRegistry->resetManager();
+        }
+
+        // existing index
+        $indices = $entityManager->getRepository(EventEntity::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::PUBLICATION_INDEX]);
+        $mainIndexCandidates = array_filter($indices, function ($index) use ($nzine) {
+            return $index->getSlug() == $nzine->getSlug();
+        });
+
+        $mainIndex = array_pop($mainIndexCandidates);
+        if (empty($mainIndex)) {
+            throw $this->createNotFoundException('Main index not found');
         }
 
         $catForm = $this->createForm(NzineType::class, ['categories' => $nzine->getMainCategories()]);
@@ -153,20 +92,16 @@ class NzineController extends AbstractController
 
             $nzine->setMainCategories($data);
 
-//            try {
-//                $entityManager->beginTransaction();
-//                $entityManager->persist($nzine);
-//                $entityManager->flush();
-//                $entityManager->commit();
-//            } catch (Exception $e) {
-//                $entityManager->rollback();
-//                $managerRegistry->resetManager();
-//            }
+            try {
+                $entityManager->beginTransaction();
+                $entityManager->persist($nzine);
+                $entityManager->flush();
+                $entityManager->commit();
+            } catch (Exception $e) {
+                $entityManager->rollback();
+                $managerRegistry->resetManager();
+            }
 
-            // existing indices
-            $indices = $entityManager->getRepository(EventEntity::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::PUBLICATION_INDEX]);
-            // get oldest, treat it as root
-            $mainIndex = $indices[0];
             // TODO create and update indices
             foreach ($data as $cat) {
                 // find or create new index
@@ -185,7 +120,9 @@ class NzineController extends AbstractController
 
                 $signer = new Sign();
                 // TODO get key
-                // $signer->signEvent($index, $private_key);
+
+                $private_key = $encryptionService->decrypt($nzine->getNsec());
+                $signer->signEvent($index, $private_key);
                 // save to persistence, first map to EventEntity
                 $serializer = new Serializer([new ObjectNormalizer()],[new JsonEncoder()]);
                 $i = $serializer->deserialize($index->toJson(), EventEntity::class, 'json');
@@ -197,15 +134,16 @@ class NzineController extends AbstractController
 
             // TODO add the new and updated indices to the main index
 
+
             // redirect to route nzine_view
             return $this->redirectToRoute('nzine_view', [
                 'npub' => $nzine->getNpub(),
             ]);
         }
 
-
         return $this->render('pages/nzine-editor.html.twig', [
             'nzine' => $nzine,
+            'indices' => $indices,
             'bot' => $bot,
             'catForm' => $catForm
         ]);
@@ -220,25 +158,21 @@ class NzineController extends AbstractController
     #[Route('/nzine/{npub}', name: 'nzine_update')]
     public function nzineUpdate()
     {
-        // TODO make this a separate step and create all the indices and populate with articles all at once
+        // TODO make this a separate step and publish all the indices and populate with articles all at once
 
     }
 
 
     #[Route('/nzine/v/{npub}', name: 'nzine_view')]
-    public function nzineView($npub, EntityManagerInterface $entityManager) {
+    public function nzineView($npub, EntityManagerInterface $entityManager): Response
+    {
         $nzine = $entityManager->getRepository(Nzine::class)->findOneBy(['npub' => $npub]);
         if (!$nzine) {
             throw $this->createNotFoundException('N-Zine not found');
         }
         // Find all index events for this nzine
         $indices = $entityManager->getRepository(EventEntity::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::PUBLICATION_INDEX]);
-        // TODO Filter out the main index by the d-tag saved to entity or something
         $main = $indices[0];
-        // let's pretend we have some nested indices in this zine
-        $main->setTags(['a', '30040:'.$npub.':1'.$nzine->getSlug()]);
-        $main->setTags(['a', '30040:'.$npub.':2'.$nzine->getSlug()]);
-
 
         return $this->render('pages/nzine.html.twig', [
             'nzine' => $nzine,
@@ -247,7 +181,8 @@ class NzineController extends AbstractController
     }
 
     #[Route('/nzine/v/{npub}/{cat}', name: 'nzine_category')]
-    public function nzineCategory($npub, $cat, EntityManagerInterface $entityManager) {
+    public function nzineCategory($npub, $cat, EntityManagerInterface $entityManager): Response
+    {
         $nzine = $entityManager->getRepository(Nzine::class)->findOneBy(['npub' => $npub]);
         if (!$nzine) {
             throw $this->createNotFoundException('N-Zine not found');

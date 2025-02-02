@@ -364,3 +364,9 @@ footer p {
     padding: 15px;          /* Spacing inside the content */
     border-top: none;       /* Remove border overlap with active tab */
 }
+
+/* Quill editor */
+#editor {
+    height: 400px;
+    margin-bottom: 20px;
+}

@@ -121,6 +121,7 @@ class NostrClient
             $this->entityManager->flush();
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
+            $this->managerRegistry->resetManager();
         }
 
     }
@@ -138,6 +139,7 @@ class NostrClient
                     $this->entityManager->flush();
                 } catch (\Exception $e) {
                     $this->logger->error($e->getMessage());
+                    $this->managerRegistry->resetManager();
                 }
             }
         }
