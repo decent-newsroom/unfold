@@ -3,8 +3,6 @@
 namespace App\Security;
 
 use App\Entity\Event;
-use App\Service\NostrClient;
-use Doctrine\ORM\EntityManagerInterface;
 use Mdanter\Ecc\Crypto\Signature\SchnorrSignature;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,9 +19,6 @@ use Symfony\Component\Serializer\Serializer;
 
 class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAuthenticatorInterface
 {
-    public function __construct(private readonly NostrClient $nostrClient)
-    {
-    }
 
     public function supports(Request $request): ?bool
     {
@@ -54,19 +49,8 @@ class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAut
             throw new AuthenticationException('Invalid Authorization header');
         }
 
-        // default, in case this is a plain key with no metadata event
-        $user = new \App\Entity\User();
-        $user->setNpub($event->getPubkey());
-
-        try {
-            $this->nostrClient->getMetadata([$event->getPubkey()]);
-        } catch (\Exception) {
-            // even if the user metadata not found, if sig is valid, login the pubkey
-            // TODO log?
-        }
-
         return new SelfValidatingPassport(
-            new UserBadge($user->getUserIdentifier())
+            new UserBadge($event->getPubkey())
         );
     }
 

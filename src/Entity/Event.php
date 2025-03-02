@@ -14,6 +14,8 @@ class Event
     #[ORM\Id]
     #[ORM\Column(length: 225)]
     private string $id;
+    #[ORM\Column(length: 225, nullable: true)]
+    private ?string $eventId = null;
     #[ORM\Column(type: Types::INTEGER)]
     private int $kind = 0;
     #[ORM\Column(length: 255)]
@@ -35,6 +37,18 @@ class Event
     public function setId(string $id): void
     {
         $this->id = $id;
+    }
+
+    public function getEventId(): ?string
+    {
+        return $this->eventId;
+    }
+
+    public function setEventId(string $eventId): static
+    {
+        $this->eventId = $eventId;
+
+        return $this;
     }
 
     public function getKind(): int
@@ -108,6 +122,16 @@ class Event
         return null;
     }
 
+    public function getSummary(): ?string
+    {
+        foreach ($this->getTags() as $tag) {
+            if (array_key_first($tag) === 'summary') {
+                return $tag['summary'];
+            }
+        }
+        return null;
+    }
+
     public function getSlug(): ?string
     {
         foreach ($this->getTags() as $tag) {
@@ -117,5 +141,12 @@ class Event
         }
 
         return null;
+    }
+
+    public function addTag(array $tag): static
+    {
+        $this->tags[] = $tag;
+
+        return $this;
     }
 }

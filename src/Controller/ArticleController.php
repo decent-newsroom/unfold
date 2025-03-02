@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Article;
-use App\Entity\User;
 use App\Enum\KindsEnum;
 use App\Form\EditorType;
 use App\Service\NostrClient;
@@ -55,13 +54,8 @@ class ArticleController  extends AbstractController
             $articlesCache->save($cacheItem);
         }
 
-        // find user by npub
-        try {
-            $nostrClient->getMetadata([$article->getPubkey()]);
-        } catch (\Exception) {
-            // eh
-        }
-        $author = $entityManager->getRepository(User::class)->findOneBy(['npub' => $article->getPubkey()]);
+        $meta = $nostrClient->getNpubMetadata($article->getPubkey());
+        $author = (array) json_decode($meta->content);
 
         return $this->render('Pages/article.html.twig', [
             'article' => $article,

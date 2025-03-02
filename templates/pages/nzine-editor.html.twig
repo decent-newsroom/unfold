@@ -28,8 +28,14 @@
     {% else %}
         <h1>{{ 'heading.editNzine'|trans }}</h1>
 
-        <h2>{{ bot.name }}</h2>
-        <p class="lede">{{ bot.about }}</p>
+
+        <h2>Indices</h2>
+        <ul>
+            {% for idx in indices %}
+                <li>{{ idx.title }}</li>
+            {% endfor %}
+        </ul>
+
 
         <h2>Categories</h2>
         <p>

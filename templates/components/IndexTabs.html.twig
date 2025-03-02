@@ -17,7 +17,7 @@
     <!-- Tab Content -->
     <div class="tab-content mt-3">
         <div class="tab-pane fade show active">
-            {{ this.tabContent()|raw }}
+            <twig:Molecules:ArticleFromATag :list="this.tabContent" />
         </div>
     </div>
 </div>

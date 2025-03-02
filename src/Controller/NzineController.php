@@ -34,11 +34,14 @@ class NzineController extends AbstractController
      * @throws \JsonException
      */
     #[Route('/nzine', name: 'nzine_index')]
-    public function index(Request $request, NzineWorkflowService $nzineWorkflowService): Response
+    public function index(Request $request, NzineWorkflowService $nzineWorkflowService, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(NzineBotType::class);
         $form->handleRequest($request);
         $user = $this->getUser();
+
+        $nzine = $entityManager->getRepository(Nzine::class)->findAll();
+
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
@@ -75,6 +78,7 @@ class NzineController extends AbstractController
 
         // existing index
         $indices = $entityManager->getRepository(EventEntity::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::PUBLICATION_INDEX]);
+
         $mainIndexCandidates = array_filter($indices, function ($index) use ($nzine) {
             return $index->getSlug() == $nzine->getSlug();
         });
@@ -86,6 +90,7 @@ class NzineController extends AbstractController
 
         $catForm = $this->createForm(NzineType::class, ['categories' => $nzine->getMainCategories()]);
         $catForm->handleRequest($request);
+
         if ($catForm->isSubmitted() && $catForm->isValid()) {
             // Process and normalize the 'tags' field
             $data = $catForm->get('categories')->getData();
@@ -102,9 +107,22 @@ class NzineController extends AbstractController
                 $managerRegistry->resetManager();
             }
 
-            // TODO create and update indices
+            $catIndices = [];
+
+            $bot = $nzine->getNzineBot();
+            $bot->setEncryptionService($encryptionService);
+            $private_key = $bot->getNsec(); // decrypted en route
+
             foreach ($data as $cat) {
-                // find or create new index
+                // check if such an index exists, only create new cats
+                $id = array_filter($indices, function ($k) use ($cat) {
+                    return $cat['title'] === $k->getTitle();
+                });
+                if (!empty($id)) { continue; }
+
+                // create new index
+                // currently not possible to edit existing, because there is no way to tell what has changed
+                // and which is the corresponding event
                 $slugger = new AsciiSlugger();
                 $title = $cat['title'];
                 $slug = $mainIndex->getSlug().'-'.$slugger->slug($title)->lower();
@@ -116,24 +134,34 @@ class NzineController extends AbstractController
                 $index->addTag(['title' => $title]);
                 $index->addTag(['auto-update' => 'yes']);
                 $index->addTag(['type' => 'magazine']);
-                // TODO add indexed items that fall into the category
+                foreach ($cat['tags'] as $tag) {
+                    $index->addTag(['t' => $tag]);
+                }
+                $index->setPublicKey($nzine->getNpub());
 
                 $signer = new Sign();
-                // TODO get key
-
-                $private_key = $encryptionService->decrypt($nzine->getNsec());
                 $signer->signEvent($index, $private_key);
                 // save to persistence, first map to EventEntity
                 $serializer = new Serializer([new ObjectNormalizer()],[new JsonEncoder()]);
                 $i = $serializer->deserialize($index->toJson(), EventEntity::class, 'json');
                 // don't save any more for now
                 $entityManager->persist($i);
-                // $entityManager->flush();
+                $entityManager->flush();
                 // TODO publish index to relays
+
+                $catIndices[] = $index;
             }
 
-            // TODO add the new and updated indices to the main index
+            // add the new and updated indices to the main index
+            foreach ($catIndices as $idx) {
+                $mainIndex->addTag(['e' => $idx->getId() ]);
+            }
 
+            // re-sign main index and save to relays
+            // $signer = new Sign();
+            // $signer->signEvent($mainIndex, $private_key);
+            // for now, just save new index
+            $entityManager->flush();
 
             // redirect to route nzine_view
             return $this->redirectToRoute('nzine_view', [
@@ -144,7 +172,7 @@ class NzineController extends AbstractController
         return $this->render('pages/nzine-editor.html.twig', [
             'nzine' => $nzine,
             'indices' => $indices,
-            'bot' => $bot,
+            'bot' => $bot ?? null, // if null, the profile for the bot doesn't exist yet
             'catForm' => $catForm
         ]);
     }
@@ -172,11 +200,16 @@ class NzineController extends AbstractController
         }
         // Find all index events for this nzine
         $indices = $entityManager->getRepository(EventEntity::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::PUBLICATION_INDEX]);
-        $main = $indices[0];
+        $mainIndexCandidates = array_filter($indices, function ($index) use ($nzine) {
+            return $index->getSlug() == $nzine->getSlug();
+        });
+
+        $mainIndex = array_pop($mainIndexCandidates);
 
         return $this->render('pages/nzine.html.twig', [
             'nzine' => $nzine,
-            'index' => $main
+            'index' => $mainIndex,
+            'events' => $indices, // TODO traverse all and collect all leaves
         ]);
     }
 

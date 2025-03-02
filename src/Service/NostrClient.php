@@ -7,43 +7,133 @@ use App\Entity\User;
 use App\Enum\KindsEnum;
 use App\Factory\ArticleFactory;
 use App\Repository\UserEntityRepository;
+use App\Security\UserDTO;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use swentel\nostr\Event\Event;
 use swentel\nostr\Filter\Filter;
+use swentel\nostr\Message\EventMessage;
 use swentel\nostr\Message\RequestMessage;
 use swentel\nostr\Relay\Relay;
 use swentel\nostr\Relay\RelaySet;
 use swentel\nostr\Request\Request;
 use swentel\nostr\Subscription\Subscription;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class NostrClient
 {
+    private $defaultRelaySet;
     public function __construct(private readonly EntityManagerInterface $entityManager,
+                                private readonly ManagerRegistry $managerRegistry,
                                 private readonly UserEntityRepository $userEntityRepository,
                                 private readonly ArticleFactory $articleFactory,
                                 private readonly SerializerInterface    $serializer,
+                                private readonly TokenStorageInterface $tokenStorage,
+                                private readonly CacheInterface $cacheApp,
                                 private readonly LoggerInterface        $logger)
     {
+        // TODO configure read and write relays for logged in users from their 10002 events
+        $this->defaultRelaySet = new RelaySet();
+        $this->defaultRelaySet->addRelay(new Relay('wss://relay.damus.io')); // public relay
+        $this->defaultRelaySet->addRelay(new Relay('wss://nos.lol')); // public relay
+    }
+
+    public function getLoginData($npub)
+    {
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::METADATA, KindsEnum::RELAY_LIST]);
+        $filter->setAuthors([$npub]);
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+        // use default aggregator relay
+        $relay = new Relay('wss://purplepag.es');
+
+        $request = new Request($relay, $requestMessage);
+
+        $response = $request->send();
+        // response is an n-dimensional array, where n is the number of relays in the set
+        // check that response has events in the results
+        foreach ($response as $relayRes) {
+            $filtered = array_filter($relayRes, function ($item) {
+                return $item->type === 'EVENT';
+            });
+            if (count($filtered) > 0) {
+                return $filtered;
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Long-form Content
-     * NIP-23
+     * @throws \Exception
+     * @throws InvalidArgumentException
      */
-    public function getLongFormContent(): void
+    public function getNpubMetadata($npub)
+    {
+        // cache metadata, only fetch new, if no cache hit
+        return $this->cacheApp->get($npub.'-0', function (ItemInterface $item) use ($npub) {
+            $item->expiresAfter(7000);
+
+            $subscription = new Subscription();
+            $subscriptionId = $subscription->setId();
+            $filter = new Filter();
+            $filter->setKinds([KindsEnum::METADATA]);
+            $filter->setAuthors([$npub]);
+            $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+            $relays = new RelaySet();
+            $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
+
+            $request = new Request($relays, $requestMessage);
+
+            $response = $request->send();
+            // response is an array of arrays
+            foreach ($response as $value) {
+                foreach ($value as $item) {
+                    switch ($item->type) {
+                        case 'EVENT':
+                            return $item->event;
+                        case 'AUTH':
+                            throw new UnauthorizedHttpException('', 'Relay requires authentication');
+                        case 'ERROR':
+                        case 'NOTICE':
+                            throw new \Exception('An error occurred');
+                        default:
+                            return null;
+                    }
+                }
+            }
+            return null;
+        });
+    }
+
+    public function getNpubLongForm($npub): void
     {
         $subscription = new Subscription();
         $subscriptionId = $subscription->setId();
         $filter = new Filter();
         $filter->setKinds([KindsEnum::LONGFORM]);
-        // TODO make filters configurable
-        $filter->setSince(strtotime('-1 week')); //
+        $filter->setAuthors([$npub]);
+        $filter->setSince(strtotime('-6 months')); // too much?
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-        // TODO make relays configurable
-        $relays = new RelaySet();
-        $relays->addRelay(new Relay('wss://nos.lol')); // default relay
+
+        // if user is logged in, use their settings
+        /* @var UserDTO $user */
+        $user = $this->tokenStorage->getToken()?->getUser();
+        $relays = $this->defaultRelaySet;
+        if ($user && $user->getRelays()) {
+            $relays = new RelaySet();
+            foreach ($user->getRelays() as $relayArr) {
+                $relays->addRelay(new Relay($relayArr[1]));
+            }
+        }
 
         $request = new Request($relays, $requestMessage);
 
@@ -61,6 +151,60 @@ class NostrClient
         // TODO handle relays that require auth
     }
 
+
+    public function publishEvent(Event $event, array $relays): array
+    {
+        $eventMessage = new EventMessage($event);
+        $relaySet = new RelaySet();
+        foreach ($relays as $relayWss) {
+            $relay = new Relay($relayWss);
+            $relaySet->addRelay($relay);
+        }
+        $relaySet->setMessage($eventMessage);
+        // TODO handle responses appropriately
+        return $relaySet->send();
+    }
+
+    /**
+     * Long-form Content
+     * NIP-23
+     */
+    public function getLongFormContent(): void
+    {
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::LONGFORM]);
+        // TODO make filters configurable
+        $filter->setSince(strtotime('-8 weeks')); //
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+
+        // if user is logged in, use their settings
+        $user = $this->tokenStorage->getToken()?->getUser();
+        $relays = $this->defaultRelaySet;
+        if ($user) {
+            $relays = new RelaySet();
+
+        }
+
+        $request = new Request($relays, $requestMessage);
+
+        $response = $request->send();
+        // response is an n-dimensional array, where n is the number of relays in the set
+        // check that response has events in the results
+        foreach ($response as $relayRes) {
+            $filtered = array_filter($relayRes, function ($item) {
+                return $item->type === 'EVENT';
+            });
+            if (count($filtered) > 0) {
+                $this->saveLongFormContent($filtered);
+            }
+        }
+        // TODO handle relays that require auth
+    }
+
+
+
     /**
      * User metadata
      * NIP-01
@@ -77,7 +221,7 @@ class NostrClient
         // TODO make relays configurable
         $relays = new RelaySet();
         $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
-        $relays->addRelay(new Relay('wss://nos.lol')); // default metadata aggregator
+        // $relays->addRelay(new Relay('wss://nos.lol')); // default metadata aggregator
 
         $request = new Request($relays, $requestMessage);
 
@@ -100,6 +244,41 @@ class NostrClient
             }
         }
 
+    }
+
+    public function getProfileEvents($npub): void
+    {
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::METADATA, KindsEnum::FOLLOWS, KindsEnum::RELAY_LIST]);
+        $filter->setAuthors([$npub]);
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+        // TODO make relays configurable
+        $relays = new RelaySet();
+        $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
+        $relays->addRelay(new Relay('wss://nos.lol')); // default public
+
+        $request = new Request($relays, $requestMessage);
+
+        $response = $request->send();
+        // response is an array of arrays
+        foreach ($response as $value) {
+            foreach ($value as $item) {
+                switch ($item->type) {
+                    case 'EVENT':
+                        dump($item);
+                        break;
+                    case 'AUTH':
+                        throw new UnauthorizedHttpException('', 'Relay requires authentication');
+                    case 'ERROR':
+                    case 'NOTICE':
+                        throw new \Exception('An error occurred');
+                    default:
+                        // nothing to do here
+                }
+            }
+        }
     }
 
     /**

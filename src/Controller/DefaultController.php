@@ -24,11 +24,19 @@ class DefaultController extends AbstractController
     #[Route('/', name: 'default')]
     public function index(): Response
     {
-        $original = $this->entityManager->getRepository(Article::class)->findBy([], ['createdAt' => 'DESC'], 10);
+        $original = $this->entityManager->getRepository(Article::class)->findBy([], ['createdAt' => 'DESC'], 20);
 
         $list = array_filter($original, function ($obj) {
             return !empty($obj->getSlug());
         });
+
+        // deduplicate by slugs
+        $deduplicated = [];
+        foreach ($list as $item) {
+            if (!key_exists((string) $item->getSlug(), $deduplicated)) {
+                $deduplicated[(string) $item->getSlug()] = $item;
+            }
+        }
 
         $npubs = array_map(function($obj) {
             return $obj->getPubkey();
@@ -37,7 +45,7 @@ class DefaultController extends AbstractController
         $this->nostrClient->getMetadata(array_unique($npubs));
 
         return $this->render('home.html.twig', [
-            'list' => $list
+            'list' => array_values($deduplicated)
         ]);
     }
 }

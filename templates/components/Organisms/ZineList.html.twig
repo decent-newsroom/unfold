@@ -1,5 +1,16 @@
 <div {{ attributes }}>
     {% for item in nzines %}
-        <twig:Molecules:Card class="card user" :npub="item.npub" tag="a" href="{{ path('author-profile', {npub: item.npub}) }}" ></twig:Molecules:Card>
+        {% if item.npub in indices|keys %}
+        {% set idx = indices[item.npub] %}
+            {% if idx|length > 0 %}
+            <a class="card" href="{{ path('nzine_view', { npub: item.npub })}}">
+                <div class="card-body">
+                    <h3 class="card-title">{{ idx.title }}</h3>
+                    <p class="hidden">{{ idx.summary }}</p>
+                </div>
+            </a>
+            <br>
+            {% endif %}
+        {% endif %}
     {% endfor %}
 </div>

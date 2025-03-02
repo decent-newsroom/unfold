@@ -1,9 +1,7 @@
 <span>
-    {% if author.displayName is not empty %}
-        {{ author.displayName }}
+    {% if author.display_name is defined and author.display_name is not empty %}
+        {{ author.display_name }}
     {% elseif author.name is not empty %}
         {{ author.name }}
-    {% else %}
-        {{ author.npub }}
     {% endif %}
 </span>

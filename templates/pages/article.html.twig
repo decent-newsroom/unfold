@@ -8,7 +8,7 @@
         {% if author %}
             <div class="byline">
                 <span>
-                    {{ 'text.byline'|trans }} <a href="{{ path('author-profile', {'npub': author.npub}) }}">
+                    {{ 'text.byline'|trans }} <a href="{{ path('author-profile', {'npub': article.pubkey}) }}">
                         <twig:atoms:NameOrNpub :author="author" />
                     </a>
                 </span>

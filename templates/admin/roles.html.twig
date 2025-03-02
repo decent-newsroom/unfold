@@ -10,6 +10,15 @@
         </div>
     {% endfor %}
 
+    {% if app.user %}
+        <div>
+            {{ app.user.userIdentifier }}<br>
+            {% for role in app.user.roles %}
+                {{ role }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {# Form for adding a new role #}
     {{ form_start(form) }}
     {{ form_widget(form) }}

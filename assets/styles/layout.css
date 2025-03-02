@@ -60,6 +60,19 @@ aside {
     padding: 1em;
 }
 
+table {
+    width: 100%;
+    margin: 20px 0;
+}
+
+code {
+    text-wrap: wrap;
+}
+
+hr {
+    margin: 20px 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     nav, aside {

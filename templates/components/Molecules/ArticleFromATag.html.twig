@@ -1,0 +1,7 @@
+{% if list is iterable %}
+    {% for item in list %}
+        <p>{{ item }}</p>
+    {% endfor %}
+{% else %}
+<p>{{ list }}</p>
+{% endif %}

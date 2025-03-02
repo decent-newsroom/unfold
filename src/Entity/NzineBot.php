@@ -14,13 +14,15 @@ class NzineBot
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+    private ?EncryptionService $encryptionService = null;
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $encryptedNsec = null;
     #[Ignore]
     private ?string $nsec = null;
 
-    public function __construct(private readonly EncryptionService $encryptionService)
+    public function setEncryptionService(EncryptionService $encryptionService): void
     {
+        $this->encryptionService = $encryptionService;
     }
 
     public function getId(): ?int

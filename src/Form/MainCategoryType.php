@@ -23,7 +23,7 @@ class MainCategoryType extends AbstractType
                 'label' => 'Title',
             ])
             ->add('tags', TextType::class, [
-                'label' => 'Tags (comma-separated)',
+                'label' => 'Tags',
             ]);
 
         $builder->get('tags')->addModelTransformer($this->transformer);

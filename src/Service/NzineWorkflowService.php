@@ -51,9 +51,12 @@ class NzineWorkflowService
         // create NZine bot
         $key = new Key();
         $private_key = $key->generatePrivateKey();
-        $bot = new NzineBot($this->encryptionService);
+        $bot = new NzineBot();
+        $bot->setEncryptionService($this->encryptionService);
         $bot->setNsec($private_key);
         $this->entityManager->persist($bot);
+        $this->entityManager->flush();
+
         // publish bot profile
         $profileContent = [
             'name' => $name,
@@ -65,7 +68,7 @@ class NzineWorkflowService
         $profileEvent->setContent(json_encode($profileContent));
         $signer = new Sign();
         $signer->signEvent($profileEvent, $private_key);
-        $this->nostrClient->publishEvent($profileEvent, ['wss://purplepag.es']);
+        // $this->nostrClient->publishEvent($profileEvent, ['wss://purplepag.es']);
 
         // add EDITOR role to the user
         $role = RolesEnum::EDITOR->value;
@@ -91,7 +94,7 @@ class NzineWorkflowService
     public function createMainIndex(Nzine $nzine, string $title, string $summary): void
     {
         if (!$this->nzineWorkflow->can($nzine, 'create_main_index')) {
-            throw new \LogicException('Cannot create main index in the current state.');
+            // throw new \LogicException('Cannot create main index in the current state.');
         }
 
         $bot = $nzine->getNzineBot();
@@ -99,6 +102,9 @@ class NzineWorkflowService
 
         $slugger = new AsciiSlugger();
         $slug = 'nzine-'.$slugger->slug($title)->lower().'-'.rand(10000,99999);
+        // save slug to nzine
+        $nzine->setSlug($slug);
+
         // create NZine main index
         $index = new Event();
         $index->setKind(KindsEnum::PUBLICATION_INDEX->value);
@@ -116,7 +122,6 @@ class NzineWorkflowService
         $this->entityManager->persist($i);
 
         $this->nzineWorkflow->apply($nzine, 'create_main_index');
-        $this->entityManager->persist($nzine);
         $this->entityManager->flush();
     }
 

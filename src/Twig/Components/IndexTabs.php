@@ -20,11 +20,8 @@ class IndexTabs
     public int $activeTab = 1; // Default active tab
 
     #[LiveProp]
-    public array $tabs = [
-        ['id' => 1, 'label' => 'Tab 1'],
-        ['id' => 2, 'label' => 'Tab 2'],
-        ['id' => 3, 'label' => 'Tab 3'],
-    ];
+    /** ['id' => 1, 'label' => 'Tab 1'] */
+    public array $tabs = [];
 
     #[LiveAction]
     public function changeTab(#[LiveArg] int $id): void
@@ -44,18 +41,23 @@ class IndexTabs
             if (array_key_first($tag) === 'a') {
                 $ref = $tag['a'];
                 list($kind,$npub,$slug) = explode(':',$ref);
-                // find all connected indices
-                $this->entityManager->getRepository(EventEntity::class)->findOneBy(['slug' => $slug]);
+                $cat = $this->entityManager->getRepository(EventEntity::class)->findOneBy(['slug' => $slug]);
+            } elseif (array_key_first($tag) === 'e') {
+                $cat = $this->entityManager->getRepository(EventEntity::class)->findOneBy(['id' => $tag['e']]);
+                $next = count($this->tabs) + 1;
+                $this->tabs[] = ['id' => $next, 'label' => $cat->getTitle()];
             }
         }
     }
 
-    public function getTabContent(): string
+    public function getTabContent(): string|array
     {
         return match ($this->activeTab) {
-            1 => 'This is content for Tab 1. Loaded directly in Live Component!',
+            1 => [
+                '30023:c1e6505c02da8d1b0a5b3d6db6e19b2eb22dcd54f0e86306ec8a213902b3157e:809797',
+                '30032:c1e6505c02da8d1b0a5b3d6db6e19b2eb22dcd54f0e86306ec8a213902b3157e:012025-7zsaxt'
+                ],
             2 => 'This is content for Tab 2. No AJAX needed!',
-            3 => 'This is content for Tab 3. Server-side rendering!',
             default => 'No content available.',
         };
     }
