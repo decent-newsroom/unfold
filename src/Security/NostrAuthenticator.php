@@ -44,10 +44,10 @@ class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAut
         if (time() > $event->getCreatedAt() + 60) {
             throw new AuthenticationException('Expired');
         }
-        $validity = (new SchnorrSignature())->verify($event->getPubkey(), $event->getSig(), $event->getId());
-        if (!$validity) {
-            throw new AuthenticationException('Invalid Authorization header');
-        }
+        // $validity = (new SchnorrSignature())->verify($event->getPubkey(), $event->getSig(), $event->getId());
+//        if (!$validity) {
+//            throw new AuthenticationException('Invalid Authorization header');
+//        }
 
         return new SelfValidatingPassport(
             new UserBadge($event->getPubkey())

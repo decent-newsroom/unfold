@@ -1,0 +1,23 @@
+fos_elastica:
+    clients:
+        default:
+            host: '%env(ELASTICSEARCH_HOST)%'
+            port: '%env(int:ELASTICSEARCH_PORT)%'
+            username: '%env(ELASTICSEARCH_USERNAME)%'
+            password: '%env(ELASTICSEARCH_PASSWORD)%'
+    indexes:
+        # create the index by running php bin/console fos:elastica:populate
+        articles:
+            properties:
+                title: ~
+                summary: ~
+                content: ~
+                slug: ~
+                topics: ~
+            persistence:
+                driver: orm
+                model: App\Entity\Article
+                provider: ~
+                listener: ~
+                finder: ~
+

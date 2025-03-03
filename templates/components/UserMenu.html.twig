@@ -25,4 +25,9 @@
     {% else %}
         <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>{{ 'heading.logIn'|trans }}</twig:Atoms:Button>
     {% endif %}
+    <ul>
+        <li>
+            <a href="{{ path('app_search_index') }}">{{ 'heading.search'|trans }}</a>
+        </li>
+    </ul>
 </div>

@@ -1,0 +1,20 @@
+<div {{ attributes }}>
+    <label class="search">
+        <input type="search"
+               placeholder="{{ 'text.search'|trans }}"
+               data-model="norender|query"
+        />
+        <button type="submit" data-action="live#$render"><twig:ux:icon name="iconoir:search" class="icon" /></button>
+    </label>
+
+    <!-- Loading Indicator -->
+    <span data-loading>{{ 'text.searching'|trans }}</span>
+
+    <!-- Results -->
+    {% if this.results is not empty %}
+        <twig:Organisms:CardList :list="this.results" />
+    {% elseif this.query is not empty %}
+        <p><small>{{ 'text.noResults'|trans }}</small></p>
+    {% endif %}
+</div>
+

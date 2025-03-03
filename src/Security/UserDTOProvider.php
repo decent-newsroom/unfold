@@ -20,7 +20,7 @@ readonly class UserDTOProvider implements UserProviderInterface
      */
     public function refreshUser(UserInterface $user): UserInterface
     {
-        if (!$user instanceof UserDTO) {
+        if (!$user instanceof User) {
             throw new \InvalidArgumentException('Invalid user type.');
         }
 
@@ -32,7 +32,7 @@ readonly class UserDTOProvider implements UserProviderInterface
      */
     public function supportsClass(string $class): bool
     {
-        return $class === UserDTO::class;
+        return $class === User::class;
     }
 
     /**
@@ -41,6 +41,7 @@ readonly class UserDTOProvider implements UserProviderInterface
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['npub' => $identifier]);
+        $metadata = $relays = null;
 
         if (!$user) {
             // user
@@ -67,7 +68,10 @@ readonly class UserDTOProvider implements UserProviderInterface
             $metadata->name =  substr($identifier, 0, 5) . ':' .  substr($identifier, -5);
         }
 
-        return new UserDTO($user, $metadata ?? null, $relays ?? null);
+        $user->setMetadata($metadata);
+        $user->setRelays($relays);
+
+        return $user;
 
     }
 }

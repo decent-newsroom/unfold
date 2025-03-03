@@ -26,3 +26,7 @@ services:
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - '%env(DATABASE_URL)%'
+
+    # 
+    FOS\ElasticaBundle\Finder\FinderInterface:
+        alias: fos_elastica.finder.articles

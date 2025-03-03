@@ -1,8 +1,12 @@
 text:
-  byline: 'By'
+    byline: 'By'
+    search: 'Search...'
+    searching: 'Searching...'
+    noResults: 'No results.'
 heading:
     roles: 'Roles'
     logout: 'Log out'
     logIn: 'Log in'
     createNzine: 'Create an N-Zine'
     editNzine: 'Edit your N-Zine'
+    search: 'Search'

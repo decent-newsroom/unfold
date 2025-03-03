@@ -26,7 +26,7 @@ class AuthorController extends AbstractController
     public function index($npub, EntityManagerInterface $entityManager, NostrClient $client): Response
     {
         $meta = $client->getNpubMetadata($npub);
-        $author = (array) json_decode($meta->content);
+        $author = (array) json_decode($meta->content ?? '{}');
 
         $client->getNpubLongForm($npub);
 

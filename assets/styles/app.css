@@ -370,3 +370,9 @@ footer p {
     height: 400px;
     margin-bottom: 20px;
 }
+
+/* Search */
+label.search {
+    width: 100%;
+    justify-content: center;
+}
