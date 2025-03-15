@@ -176,7 +176,7 @@ class NostrClient
         $filter = new Filter();
         $filter->setKinds([KindsEnum::LONGFORM]);
         // TODO make filters configurable
-        $filter->setSince(strtotime('-8 weeks')); //
+        $filter->setSince(strtotime('-1 week')); //
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
 
         // if user is logged in, use their settings

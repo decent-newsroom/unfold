@@ -2,22 +2,28 @@
     {% if app.user %}
         <p>Hello, {{ app.user.displayName }}</p>
         {% if is_granted('ROLE_ADMIN') %}
-        <ul>
-            <li>
-                <a href="{{ path('admin_roles') }}">{{ 'heading.roles'|trans }}</a>
-            </li>
-        </ul>
+{#        <ul>#}
+{#            <li>#}
+{#                <a href="{{ path('admin_roles') }}">{{ 'heading.roles'|trans }}</a>#}
+{#            </li>#}
+{#        </ul>#}
         {% endif %}
         <ul>
             <li>
                 <a href="{{ path('author-profile', {npub: app.user.npub }) }}">Profile</a>
             </li>
+{#            <li>#}
+{#                <a href="{{ path('editor-create') }}">Write an article</a>#}
+{#            </li>#}
+{#            <li>#}
+{#                <a href="{{ path('nzine_index') }}">{{ 'heading.createNzine'|trans }}</a>#}
+{#            </li>#}
             <li>
-                <a href="{{ path('editor-create') }}">Write an article</a>
+                <a href="{{ path('app_search_index') }}">{{ 'heading.search'|trans }}</a>
             </li>
-            <li>
-                <a href="{{ path('nzine_index') }}">{{ 'heading.createNzine'|trans }}</a>
-            </li>
+{#            <li>#}
+{#                <a href="{{ path('app_index_index') }}">{{ 'heading.index'|trans }}</a>#}
+{#            </li>#}
             <li>
                 <a href="/logout" data-action="live#$render">{{ 'heading.logout'|trans }}</a>
             </li>
@@ -25,9 +31,4 @@
     {% else %}
         <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>{{ 'heading.logIn'|trans }}</twig:Atoms:Button>
     {% endif %}
-    <ul>
-        <li>
-            <a href="{{ path('app_search_index') }}">{{ 'heading.search'|trans }}</a>
-        </li>
-    </ul>
 </div>

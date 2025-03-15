@@ -154,7 +154,12 @@ class NzineController extends AbstractController
 
             // add the new and updated indices to the main index
             foreach ($catIndices as $idx) {
-                $mainIndex->addTag(['e' => $idx->getId() ]);
+                //remove e tags and add new
+                // $tags = array_splice($mainIndex->getTags(), -3);
+                // $mainIndex->setTags($tags);
+                // TODO add relay hints
+                $mainIndex->addTag(['a' => KindsEnum::PUBLICATION_INDEX->value .':'. $idx->getPublicKey() .':'. $idx->getSlug()]);
+                // $mainIndex->addTag(['e' => $idx->getId() ]);
             }
 
             // re-sign main index and save to relays
@@ -203,6 +208,8 @@ class NzineController extends AbstractController
         $mainIndexCandidates = array_filter($indices, function ($index) use ($nzine) {
             return $index->getSlug() == $nzine->getSlug();
         });
+
+        dump($indices);die();
 
         $mainIndex = array_pop($mainIndexCandidates);
 

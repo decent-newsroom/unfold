@@ -20,7 +20,7 @@ class IndexTabs
     public int $activeTab = 1; // Default active tab
 
     #[LiveProp]
-    /** ['id' => 1, 'label' => 'Tab 1'] */
+    /** ['id' => 1, 'label' => 'Tab 1', 'i' => <index> ] */
     public array $tabs = [];
 
     #[LiveAction]
@@ -39,24 +39,26 @@ class IndexTabs
         // TODO extract categories from index and feed into tabs
         foreach ($index->getTags() as $tag) {
             if (array_key_first($tag) === 'a') {
-                $ref = $tag['a'];
+                $ref = $tag[1];
+                $relayHint = $tag[2] ?? null;
                 list($kind,$npub,$slug) = explode(':',$ref);
                 $cat = $this->entityManager->getRepository(EventEntity::class)->findOneBy(['slug' => $slug]);
-            } elseif (array_key_first($tag) === 'e') {
-                $cat = $this->entityManager->getRepository(EventEntity::class)->findOneBy(['id' => $tag['e']]);
                 $next = count($this->tabs) + 1;
-                $this->tabs[] = ['id' => $next, 'label' => $cat->getTitle()];
+                $this->tabs[] = ['id' => $next, 'label' => $cat->getTitle(), 'i' => $cat];
+            } elseif (array_key_first($tag) === 'e') {
+                // ignore 'e's, we want 'a's
+                //$cat = $this->entityManager->getRepository(EventEntity::class)->findOneBy(['id' => $tag[1]]);
+                //$next = count($this->tabs) + 1;
+                //$this->tabs[] = ['id' => $next, 'label' => $cat->getTitle()];
             }
         }
     }
 
     public function getTabContent(): string|array
     {
+        // return current index
         return match ($this->activeTab) {
-            1 => [
-                '30023:c1e6505c02da8d1b0a5b3d6db6e19b2eb22dcd54f0e86306ec8a213902b3157e:809797',
-                '30032:c1e6505c02da8d1b0a5b3d6db6e19b2eb22dcd54f0e86306ec8a213902b3157e:012025-7zsaxt'
-                ],
+            1 => 'This will eventually be content.',
             2 => 'This is content for Tab 2. No AJAX needed!',
             default => 'No content available.',
         };
