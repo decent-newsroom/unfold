@@ -34,6 +34,8 @@ RUN set -eux; \
 		opcache \
 		zip \
         gmp \
+        gd \
+        redis \
 	;
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser

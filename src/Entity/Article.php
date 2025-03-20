@@ -8,6 +8,7 @@ use App\Enum\KindsEnum;
 use App\Repository\ArticleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use FOS\ElasticaBundle\Provider\IndexableInterface;
 
 /**
  * Entity storing long-form articles
@@ -313,12 +314,12 @@ class Article
         return $this->eventStatus === EventStatusEnum::PREVIEW;
     }
 
-    public function getRaw(): null
+    public function getRaw()
     {
         return $this->raw;
     }
 
-    public function setRaw(object $raw): void
+    public function setRaw($raw): void
     {
         $this->raw = $raw;
     }

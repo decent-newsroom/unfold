@@ -8,6 +8,7 @@ fos_elastica:
     indexes:
         # create the index by running php bin/console fos:elastica:populate
         articles:
+            indexable_callback: [ 'App\Util\IndexableArticleChecker', 'isIndexable' ]
             properties:
                 title: ~
                 summary: ~
@@ -20,4 +21,3 @@ fos_elastica:
                 provider: ~
                 listener: ~
                 finder: ~
-

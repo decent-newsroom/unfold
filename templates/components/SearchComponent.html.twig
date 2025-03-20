@@ -1,16 +1,22 @@
 <div {{ attributes }}>
-    <label class="search">
-        <input type="search"
-               placeholder="{{ 'text.search'|trans }}"
-               data-model="norender|query"
-        />
-        <button type="submit" data-action="live#$render"><twig:ux:icon name="iconoir:search" class="icon" /></button>
-    </label>
+    {% if interactive %}
+        <label class="search">
+            <input type="search"
+                   placeholder="{{ 'text.search'|trans }}"
+                   data-model="norender|query"
+            />
+            <button type="submit" data-action="live#$render"><twig:ux:icon name="iconoir:search" class="icon" /></button>
+        </label>
+        <!--  -->
+        <div style="text-align: right">
+            <small class="help-text"><em>Powered by Silk</em></small>
+        </div>
 
-    <!-- Loading Indicator -->
-    <div style="text-align: center">
-        <span data-loading>{{ 'text.searching'|trans }}</span>
-    </div>
+        <!-- Loading Indicator -->
+        <div style="text-align: center">
+            <span data-loading>{{ 'text.searching'|trans }}</span>
+        </div>
+    {% endif %}
 
     <!-- Results -->
     {% if this.results is not empty %}

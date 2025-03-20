@@ -15,6 +15,8 @@ final class SearchComponent
     #[LiveProp(writable: true)]
     public string $query = '';
 
+    public bool $interactive = true;
+
     private FinderInterface $finder;
 
     public function __construct(FinderInterface $finder)
@@ -27,8 +29,15 @@ final class SearchComponent
         if (empty($this->query)) {
             return [];
         }
-        $res = $this->finder->find($this->query, 10); // Limit to 10 results
-        return $res; // Limit to 10 results
+        $res = $this->finder->find($this->query, 12); // Limit to 10 results
+
+        // filter out items with bad slugs
+        $filtered = array_filter($res, function($r) {
+           return !str_contains($r->getSlug(), '/');
+        });
+
+
+        return $filtered;
     }
 
 }

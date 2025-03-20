@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\Event;
 use App\Entity\Nzine;
-use App\Entity\User;
 use App\Enum\KindsEnum;
 use App\Service\NostrClient;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,12 +24,23 @@ class AuthorController extends AbstractController
     #[Route('/p/{npub}', name: 'author-profile')]
     public function index($npub, EntityManagerInterface $entityManager, NostrClient $client): Response
     {
+
+
+
         $meta = $client->getNpubMetadata($npub);
         $author = (array) json_decode($meta->content ?? '{}');
 
-        $client->getNpubLongForm($npub);
+        // $client->getNpubLongForm($npub);
 
-        $articles = $entityManager->getRepository(Article::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::LONGFORM], ['createdAt' => 'DESC']);
+        $list = $entityManager->getRepository(Article::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::LONGFORM], ['createdAt' => 'DESC']);
+
+        // deduplicate by slugs
+        $articles = [];
+        foreach ($list as $item) {
+            if (!key_exists((string) $item->getSlug(), $articles)) {
+                $articles[(string) $item->getSlug()] = $item;
+            }
+        }
 
         $indices = $entityManager->getRepository(Event::class)->findBy(['pubkey' => $npub, 'kind' => KindsEnum::PUBLICATION_INDEX]);
 
@@ -40,6 +50,7 @@ class AuthorController extends AbstractController
 
         return $this->render('Pages/author.html.twig', [
             'author' => $author,
+            'npub' => $npub,
             'articles' => $articles,
             'nzine' => $nzine,
             'nzines' => $nzines,

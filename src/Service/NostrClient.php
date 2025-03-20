@@ -7,7 +7,6 @@ use App\Entity\User;
 use App\Enum\KindsEnum;
 use App\Factory\ArticleFactory;
 use App\Repository\UserEntityRepository;
-use App\Security\UserDTO;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Cache\InvalidArgumentException;
@@ -90,6 +89,8 @@ class NostrClient
             $requestMessage = new RequestMessage($subscriptionId, [$filter]);
             $relays = new RelaySet();
             $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
+            $relays->addRelay(new Relay('wss://relay.damus.io')); // major public
+            $relays->addRelay(new Relay('wss://relay.snort.social')); // major public
 
             $request = new Request($relays, $requestMessage);
 
@@ -125,7 +126,7 @@ class NostrClient
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
 
         // if user is logged in, use their settings
-        /* @var UserDTO $user */
+        /* @var  $user */
         $user = $this->tokenStorage->getToken()?->getUser();
         $relays = $this->defaultRelaySet;
         if ($user && $user->getRelays()) {
