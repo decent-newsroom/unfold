@@ -26,6 +26,9 @@
             "./migrations/.gitignore"
         ]
     },
+    "endroid/qr-code-bundle": {
+        "version": "6.0.0"
+    },
     "friendsofsymfony/elastica-bundle": {
         "version": "6.5",
         "recipe": {

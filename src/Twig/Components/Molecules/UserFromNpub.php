@@ -4,6 +4,7 @@ namespace App\Twig\Components\Molecules;
 
 use App\Service\NostrClient;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent]
@@ -12,17 +13,24 @@ final class UserFromNpub
     public string $npub;
     public ?array $user = null;
 
-    public function __construct(private readonly NostrClient $nostrClient)
+    public function __construct(private readonly NostrClient $nostrClient, private readonly CacheInterface $redisCache)
     {
     }
 
     public function mount(string $npub): void
     {
         $this->npub = $npub;
+
         try {
-            $meta = $this->nostrClient->getNpubMetadata($npub);
-            $this->user = (array) json_decode($meta->content);
-        } catch (InvalidArgumentException|\Exception) {
+            $this->user = $this->redisCache->get('user_' . $npub, function () use ($npub) {
+                try {
+                    $meta = $this->nostrClient->getNpubMetadata($npub);
+                    return (array) json_decode($meta->content);
+                } catch (InvalidArgumentException|\Exception) {
+                    return null;
+                }
+            });
+        } catch (InvalidArgumentException $e) {
             $this->user = null;
         }
     }

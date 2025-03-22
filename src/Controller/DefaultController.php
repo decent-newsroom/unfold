@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Enum\IndexStatusEnum;
-use App\Service\NostrClient;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
@@ -20,8 +19,7 @@ class DefaultController extends AbstractController
 {
     public function __construct(
         private readonly FinderInterface $esFinder,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly NostrClient $nostrClient)
+        private readonly EntityManagerInterface $entityManager)
     {
     }
 
@@ -31,7 +29,7 @@ class DefaultController extends AbstractController
     #[Route('/', name: 'default')]
     public function index(): Response
     {
-        $list = $this->entityManager->getRepository(Article::class)->findBy(['indexStatus' => IndexStatusEnum::INDEXED], ['createdAt' => 'DESC'], 5);
+        $list = $this->entityManager->getRepository(Article::class)->findBy(['indexStatus' => IndexStatusEnum::INDEXED], ['createdAt' => 'DESC'], 10);
 
         // deduplicate by slugs
         $deduplicated = [];
@@ -41,14 +39,10 @@ class DefaultController extends AbstractController
             }
         }
 
-        $npubs = array_map(function($obj) {
-            return $obj->getPubkey();
-        }, $list);
-
-        // $this->nostrClient->getMetadata(array_unique($npubs));
-
         return $this->render('home.html.twig', [
-            'list' => array_values($deduplicated)
+            'list' => array_values(array_filter($deduplicated, function($item) {
+                return !empty($item->getImage());
+            }))
         ]);
     }
 
