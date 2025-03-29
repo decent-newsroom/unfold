@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block nav %}
+{% endblock %}
+
+{% block body %}
+    <h1>Terms of service</h1>
+
+    <p>Effective Date: April 1, 2025</p>
+
+    <p>Welcome to Decent Newsroom. These Terms of Service ("Terms") govern your access to and use of our platform,
+        including the ability to publish, index, search, and subscribe to content. By using our services, you agree to these Terms.</p>
+
+    <ol>
+        <li>
+            <h2>Introduction</h2>
+            <p>Decent Newsroom is a platform for discovering, curating, and publishing journalism on Nostr.
+                We provide tools for searching, indexing, and managing long-form content.</p>
+            <p>Decent Newsroom also publishes an open-access magazine, Newsroom magazine, comprised of a curated collection of english language articles.</p>
+        </li>
+
+        <li>
+            <h2>User Accounts & Responsibilities</h2>
+
+            <p>We do not store user credentials, emails, or passwords. Authentication is done via Nostr public keys (npubs).</p>
+
+{#            <p>Some data is stored and linked to your npub, including:</p>#}
+{#            <ul>#}
+{#                <li>Subscription status and payment history (if applicable)</li>#}
+{#                <li>Indexing requests</li>#}
+{#            </ul>#}
+
+{#            <p>Content submitted for indexing may remain publicly discoverable even if a user stops using the platform.</p>#}
+{#        #}
+        </li>
+
+        <li>
+            <h2>Content & Ownership</h2>
+            <p>The platform operates on the basis of open access content.</p>
+            <p>We do not endorse or verify third-party content and are not responsible for its accuracy.</p>
+            <p>We reserve the right to include and exclude content from the indexer at our own discretion.</p>
+{#            <p>By requesting indexing, you agree that your content may be made publicly discoverable unless otherwise specified.</p>#}
+        </li>
+
+        <li>
+            <h2>Payments & Subscriptions</h2>
+            <p>We use Lightning invoices for processing payments.</p>
+            <p>Some features, such as indexing requests, high-volume search, and premium content, require a paid subscription.</p>
+            <p>Payments are generally non-refundable, except in cases of accidental charges or platform malfunctions.</p>
+        </li>
+
+        <li>
+            <h2>Disclaimer of Warranties</h2>
+            <p>The platform is provided "as is" and "as available" without warranties of any kind.</p>
+            <p>We do not guarantee uninterrupted service, accuracy, or security of content.</p>
+        </li>
+
+        <li>
+            <h2>Limitation of Liability</h2>
+            <p>We are not responsible for any direct, indirect, or incidental damages arising from your use of the platform.</p>
+        </li>
+
+        <li>
+            <h2>Termination & Suspension</h2>
+            <p>We reserve the right to suspend or terminate access if users violate these Terms.</p>
+            <p>Users can request deletion of their data at any time, though some content may remain indexed based on prior agreements.</p>
+        </li>
+
+        <li>
+            <h2>Changes to These Terms</h2>
+            <p>We may update these Terms periodically. Continued use of the platform after modifications constitutes acceptance of the new Terms.</p>
+        </li>
+
+
+
+    </ol>
+
+{% endblock %}

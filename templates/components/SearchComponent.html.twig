@@ -7,10 +7,10 @@
             />
             <button type="submit" data-action="live#$render"><twig:ux:icon name="iconoir:search" class="icon" /></button>
         </label>
-        <!--  -->
+        <!--
         <div style="text-align: right">
             <small class="help-text"><em>Powered by Silk</em></small>
-        </div>
+        </div> -->
 
         <!-- Loading Indicator -->
         <div style="text-align: center">
@@ -20,7 +20,7 @@
 
     <!-- Results -->
     {% if this.results is not empty %}
-        <twig:Organisms:CardList :list="this.results" />
+        <twig:Organisms:CardList :list="this.results" class="article-list" />
     {% elseif this.query is not empty %}
         <p><small>{{ 'text.noResults'|trans }}</small></p>
     {% endif %}

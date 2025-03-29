@@ -206,6 +206,41 @@ class NostrClient
 
 
 
+    public function getLongFormFromNaddr($slug, $relayList, $author, $kind): void
+    {
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([$kind]);
+        $filter->setAuthors([$author]);
+        $filter->setTag('#d', [$slug]);
+
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+
+        if (empty($relayList)) {
+            $relays = $this->defaultRelaySet;
+        } else {
+            $relays = new RelaySet();
+            $relays->addRelay(new Relay($relayList[0]));
+        }
+
+        $request = new Request($relays, $requestMessage);
+
+        $response = $request->send();
+        // response is an n-dimensional array, where n is the number of relays in the set
+        // check that response has events in the results
+        foreach ($response as $relayRes) {
+            $filtered = array_filter($relayRes, function ($item) {
+                return $item->type === 'EVENT';
+            });
+            if (count($filtered) > 0) {
+                $this->saveLongFormContent($filtered);
+            }
+        }
+        // TODO handle relays that require auth
+    }
+
+
     /**
      * User metadata
      * NIP-01

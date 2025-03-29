@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Enum\KindsEnum;
 use App\Form\EditorType;
 use App\Service\NostrClient;
+use App\Util\Bech32\Bech32Decoder;
 use App\Util\CommonMark\Converter;
 use Doctrine\ORM\EntityManagerInterface;
 use League\CommonMark\Exception\CommonMarkException;
@@ -21,6 +22,59 @@ class ArticleController  extends AbstractController
 {
     /**
      * @throws InvalidArgumentException|CommonMarkException
+     * @throws \Exception
+     */
+    #[Route('/article/{naddr}', name: 'article-naddr')]
+    public function naddr(NostrClient $nostrClient, Bech32Decoder $bech32Decoder, $naddr)
+    {
+        // decode naddr
+        list($hrp, $tlv) = $bech32Decoder->decodeAndParseNostrBech32($naddr);
+        if ($hrp !== 'naddr') {
+            throw new \Exception('Invalid naddr');
+        }
+        foreach ($tlv as $item) {
+            // d tag
+            if ($item['type'] === 0) {
+                $slug = implode('', array_map('chr', $item['value']));
+            }
+
+            // relays
+            if ($item['type'] === 1) {
+                $relays[] = implode('', array_map('chr', $item['value']));
+            }
+            // author
+            if ($item['type'] === 2) {
+                $str = '';
+                foreach ($item['value'] as $byte) {
+                    $str .= str_pad(dechex($byte), 2, '0', STR_PAD_LEFT);
+                }
+                $author = $str;
+            }
+            if ($item['type'] === 3) {
+                // big-endian integer
+                $intValue = 0;
+                foreach ($item['value'] as $byte) {
+                    $intValue = ($intValue << 8) | $byte;
+                }
+                $kind = $intValue;
+            }
+        }
+
+        if ($kind !== KindsEnum::LONGFORM->value) {
+            throw new \Exception('Not a long form article');
+        }
+
+        $nostrClient->getLongFormFromNaddr($slug, $relays, $author, $kind);
+
+        if ($slug) {
+            return $this->redirectToRoute('article-slug', ['slug' => $slug]);
+        }
+
+        throw new \Exception('No article.');
+    }
+
+    /**
+     * @throws InvalidArgumentException|CommonMarkException
      */
     #[Route('/article/d/{slug}', name: 'article-slug')]
     public function article(EntityManagerInterface $entityManager, CacheItemPoolInterface $articlesCache,
@@ -30,7 +84,7 @@ class ArticleController  extends AbstractController
         // check if an item with same eventId already exists in the db
         $repository = $entityManager->getRepository(Article::class);
         $articles = $repository->findBy(['slug' => $slug]);
-        $revisions = count($repository->findBy(['slug' => $slug]));
+        $revisions = count($articles);
 
         if ($revisions > 1) {
             // sort articles by created at date

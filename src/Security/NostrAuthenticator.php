@@ -4,6 +4,7 @@ namespace App\Security;
 
 use App\Entity\Event;
 use Mdanter\Ecc\Crypto\Signature\SchnorrSignature;
+use swentel\nostr\Key\Key;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -44,13 +45,15 @@ class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAut
         if (time() > $event->getCreatedAt() + 60) {
             throw new AuthenticationException('Expired');
         }
-        // $validity = (new SchnorrSignature())->verify($event->getPubkey(), $event->getSig(), $event->getId());
-//        if (!$validity) {
-//            throw new AuthenticationException('Invalid Authorization header');
-//        }
+        $validity = (new SchnorrSignature())->verify($event->getPubkey(), $event->getSig(), $event->getId());
+        if (!$validity) {
+            throw new AuthenticationException('Invalid Authorization header');
+        }
+
+        $key = new Key();
 
         return new SelfValidatingPassport(
-            new UserBadge($event->getPubkey())
+            new UserBadge($key->convertPublicKeyToBech32($event->getPubkey()))
         );
     }
 

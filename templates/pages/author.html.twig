@@ -2,9 +2,9 @@
 
 {% block body %}
 
-    {% if author.image is defined %}
-    <img src="{{ author.image }}" alt="{{ author.name }}" />
-    {% endif %}
+{#    {% if author.image is defined %}#}
+{#        <img src="{{ author.image }}" class="avatar" alt="{{ author.name }}" />#}
+{#    {% endif %}#}
 
     <h1><twig:atoms:NameOrNpub :author="author"></twig:atoms:NameOrNpub></h1>
     {% if author.about is defined %}
@@ -54,7 +54,7 @@
         {% endfor %}
     {% endif %}
 
-    <twig:Organisms:CardList :list="articles"></twig:Organisms:CardList>
+    <twig:Organisms:CardList :list="articles" class="article-list"></twig:Organisms:CardList>
 {% endblock %}
 
 {% block aside %}
