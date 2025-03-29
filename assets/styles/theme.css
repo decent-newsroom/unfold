@@ -3,18 +3,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Slab:ital,wght@0,100..700;1,100..700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
 
+
 :root {
-    --color-bg: #222;        /* Black background */
-    --color-bg-light: #444;    /* Lighter black background */
-    --color-bg-primary: #2b1a2b;
-    --color-text: #ffffff;      /* White text */
-    --color-text-mid: #eee;     /* Light gray text */
+    --color-bg: #1a1a1a;        /* Deep charcoal background */
+    --color-bg-light: #2a2a2a;  /* Slightly lighter charcoal */
+    --color-bg-primary: #2e1f2e; /* Muted aubergine for a rich, elegant feel */
+    --color-text: #f5f5f5;       /* Soft white for readability */
+    --color-text-mid: #d8d8d8;   /* Warm light gray */
     --color-text-contrast: #000; /* Black text for contrast */
     --color-primary: #a2559c;   /* Plum primary color */
     --color-secondary: #9CAF88; /*  secondary color */
-    --color-border: #333;    /* White border for contrast */
-    --font-family: 'Montserrat'; /* Set the Montserrat font as default */
-    --main-body-font: 'Newsreader'; /* Set the font for the main body */
-    --heading-font: 'Josefin Slab'; /* Set the font for headings */
-    --brand-font: 'Lobster';
+    --color-border: #3a3a3a;     /* Subtle gray border */
+    --font-family: 'Montserrat', serif; /* Set the Montserrat font as default */
+    --main-body-font: 'Newsreader', serif; /* Set the font for the main body */
+    --heading-font: 'Josefin Slab', serif; /* Set the font for headings */
+    --brand-font: 'Lobster', serif; /* A classic, refined branding font */
+    --brand-color: white;
+}
+
+[data-theme="light"] {
+    --color-bg: #f4f1ee;
+    --color-bg-light: #e8e4df;
+    --color-text: #2a2a2a;
+    --color-text-mid: #3a3a3a;   /* Warm light gray */
+    --brand-color: black;
 }

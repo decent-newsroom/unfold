@@ -77,6 +77,10 @@ hr {
     margin: 20px 0;
 }
 
+dt {
+    margin-top: 10px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     nav, aside {
@@ -95,6 +99,10 @@ footer {
     padding: 1em 0;
     position: relative;
     width: 100%;
+}
+
+footer .footer-links {
+    margin: 24px 0;
 }
 
 .search input {

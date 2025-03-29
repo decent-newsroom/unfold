@@ -1,3 +1,40 @@
+.price-list {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.price-list .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    border: var(--color-primary) solid 1px;
+    flex-grow: 1;
+    padding: 20px;
+    flex-basis: 300px;
+}
+
+.price-list .card .features {
+    list-style: none; padding: 0;
+}
+
+.price { font-size: 22px; font-weight: bold; color: var(--color-secondary); }
+
+.price-list .card .features li { padding: 8px 0; }
+
+.price-list .card button:last-child {
+    margin-top: auto;
+}
+
+.article-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.article-list .card {
+    margin-bottom: 1rem;
+}
+
 .card-header img {
     max-width: 100%;
     height: auto;
