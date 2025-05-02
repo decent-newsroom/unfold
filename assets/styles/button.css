@@ -1,7 +1,7 @@
 
 button, .btn, a.btn {
     background-color: var(--color-primary);
-    color: var(--color-text);
+    color: var(--color-text-contrast);
     border: 2px solid var(--color-primary);
     padding: 10px 20px;
     text-transform: uppercase;

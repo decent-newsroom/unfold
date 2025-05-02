@@ -22,7 +22,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
     font-size: 3.2rem;
     margin-top: 0.25em;
-    font-weight: 600;
+    font-weight: 300;
 }
 
 h1.brand {
@@ -72,7 +72,7 @@ aside p.lede {
 
 .lede {
     font-family: var(--main-body-font), serif;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     word-wrap: break-word;
     font-weight: 300;
 }
@@ -94,9 +94,14 @@ a:hover {
     text-decoration: underline;
 }
 
-a.card:hover {
+.card a:hover {
     text-decoration: none;
+    color: var(--color-text);
     cursor: pointer;
+}
+
+.card a:hover h2 {
+    color: var(--color-text);
 }
 
 img {
@@ -122,8 +127,71 @@ svg.icon {
     background-color: var(--color-bg);
     color: var(--color-text);
     padding: 0;
-    margin: 20px 0 50px 0;
+    margin: 0 0 50px 0;
     border-radius: 0;  /* Sharp edges */
+}
+
+.featured-cat {
+    border-bottom: 2px solid var(--color-border);
+    padding-left: 10px;
+}
+
+.featured-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+div:nth-child(odd) .featured-list {
+    flex-direction: row-reverse;
+}
+
+.featured-list > * {
+    box-sizing: border-box; /* so padding/border don't break the layout */
+    margin-bottom: 5px;
+    padding: 10px;
+}
+
+.featured-list div:first-child {
+    flex: 0 0 66%; /* each item takes up 50% width = 2 columns */
+}
+
+.featured-list div:last-child {
+    flex: 0 0 34%; /* each item takes up 50% width = 2 columns */
+}
+
+.featured-list h2.card-title {
+    font-size: 1.75rem;
+}
+
+.featured-list p.lede {
+    font-size: 1.4rem;
+}
+
+.featured-list .card {
+    margin-bottom: 0;
+}
+
+.featured-list .card-header img {
+    max-height: 100px;
+}
+
+.article-list .metadata {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.article-list .metadata p {
+    margin: 0;
+}
+
+.truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* limit to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .card.bordered {
@@ -160,11 +228,8 @@ svg.icon {
 }
 
 .card-footer {
-    font-size: 0.875rem;
-    text-align: right;
-    border-top: 2px solid var(--color-border);
-    padding-top: 10px;
-    margin-top: 10px;
+    border-top: 1px solid var(--color-border);
+    margin: 20px 0;
 }
 
 .header {
@@ -195,7 +260,7 @@ svg.icon {
     font-weight: bold;
 }
 
-.header__categories li.active a {
+.header__categories a.active {
     font-weight: bold;
 }
 
@@ -262,7 +327,7 @@ footer p {
 }
 
 footer a {
-    color: var(--color-text-mid);
+    color: var(--color-text-contrast);
 }
 
 /* Tags container */
