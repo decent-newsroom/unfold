@@ -18,7 +18,7 @@
         "endroid/qr-code": "^6.0",
         "endroid/qr-code-bundle": "^6.0",
         "friendsofsymfony/elastica-bundle": "^6.5",
-        "league/commonmark": "^2.6",
+        "league/commonmark": "^2.7",
         "league/html-to-markdown": "*",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.0",
