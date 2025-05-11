@@ -3,6 +3,7 @@
 namespace App\Util\CommonMark;
 
 use App\Util\Bech32\Bech32Decoder;
+use App\Util\CommonMark\ImagesExtension\RawImageLinkExtension;
 use App\Util\CommonMark\NostrSchemeExtension\NostrSchemeExtension;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Exception\CommonMarkException;
@@ -56,6 +57,7 @@ class Converter
         // create a custom extension, that handles nostr mentions
         $environment->addExtension(new NostrSchemeExtension($this->bech32Decoder));
         $environment->addExtension(new SmartPunctExtension());
+        $environment->addExtension(new RawImageLinkExtension());
         $environment->addExtension(new AutolinkExtension());
         if ($headingsCount > 3) {
             $environment->addExtension(new HeadingPermalinkExtension());
@@ -65,7 +67,7 @@ class Converter
         // Instantiate the converter engine and start converting some Markdown!
         $converter = new MarkdownConverter($environment);
         $content = html_entity_decode($markdown);
-        
+
         return $converter->convert($content);
     }
 

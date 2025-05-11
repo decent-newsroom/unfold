@@ -3,8 +3,10 @@
 namespace App\Security;
 
 use App\Entity\User;
+use App\Enum\KindsEnum;
 use App\Service\NostrClient;
 use Doctrine\ORM\EntityManagerInterface;
+use swentel\nostr\Key\Key;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
@@ -52,22 +54,27 @@ readonly class UserDTOProvider implements UserProviderInterface
         }
 
         try {
-            $data = $this->nostrClient->getLoginData($identifier);
+            $key = new Key();
+            $pubkey = $key->convertToHex($identifier);
+            $data = $this->nostrClient->getLoginData($pubkey);
             foreach ($data as $d) {
                 $ev = $d->event;
-                if ($ev->kind === 0) {
+                if ($ev->kind === KindsEnum::METADATA) {
                     $metadata = json_decode($ev->content);
                 }
-                if ($ev->kind === 10002) {
+                if ($ev->kind === KindsEnum::RELAY_LIST) {
                     $relays = $ev->tags;
                 }
             }
-        } catch (\Exception) {
-            // even if the user metadata not found, if sig is valid, login the pubkey
+        } catch (\Exception $e) {
+            // nothing to do here right now
+        }
+
+        if (is_null($metadata)) {
+            // if no metadata event, use what you have
             $metadata = new \stdClass();
             $metadata->name =  substr($identifier, 0, 5) . ':' .  substr($identifier, -5);
         }
-
         $user->setMetadata($metadata);
         $user->setRelays($relays);
 

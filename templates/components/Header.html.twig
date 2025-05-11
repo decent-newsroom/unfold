@@ -2,21 +2,9 @@
     <div class="header__logo"><h1 class="brand"><a href="/">newsroom</a></h1></div>
     <div class="header__categories">
         <ul>
-            <li {% if app.current_route is same as("world") %}class="active"{% endif %}>
-                <a href="/world">World</a>
-            </li>
-            <li {% if app.current_route is same as("business") %}class="active"{% endif %}>
-                <a href="/business">Business</a>
-            </li>
-            <li {% if app.current_route is same as("technology") %}class="active"{% endif %}>
-                <a href="/technology">Technology</a>
-            </li>
-            <li {% if app.current_route is same as("lifestyle") %}class="active"{% endif %}>
-                <a href="/lifestyle">Lifestyle</a>
-            </li>
-            <li {% if app.current_route is same as("art") %}class="active"{% endif %}>
-                <a href="/art">Art</a>
-            </li>
+            {% for category in cats %}
+                <li><twig:Molecules:CategoryLink coordinate="{{ category }}" /></li>
+            {% endfor %}
         </ul>
     </div>
 </header>

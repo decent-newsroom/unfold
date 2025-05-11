@@ -1,7 +1,7 @@
 <div {{ attributes }}>
     {% for item in list %}
         {%  if item.slug is not empty %}
-            <twig:Molecules:Card class="card" :article="item" tag="a" href="{{ path('article-slug', {slug: item.slug}) }}" ></twig:Molecules:Card>
+            <twig:Molecules:Card :article="item"></twig:Molecules:Card>
         {% endif %}
     {% endfor %}
 </div>

@@ -25,15 +25,13 @@ class AuthorController extends AbstractController
     public function index($npub, EntityManagerInterface $entityManager, NostrClient $client): Response
     {
         $keys = new Key();
-
-        $meta = $client->getNpubMetadata($npub);
-        $author = (array) json_decode($meta->content ?? '{}');
-
-        // $client->getNpubLongForm($npub);
-
         $pubkey = $keys->convertToHex($npub);
 
-        $list = $entityManager->getRepository(Article::class)->findBy(['pubkey' => $pubkey, 'kind' => KindsEnum::LONGFORM], ['createdAt' => 'DESC']);
+        $meta = $client->getNpubMetadata($pubkey);
+
+        $author = json_decode($meta->content ?? '{}');
+
+        $list = $client->getLongFormContentForPubkey($pubkey);
 
         // deduplicate by slugs
         $articles = [];
@@ -43,7 +41,7 @@ class AuthorController extends AbstractController
             }
         }
 
-        $indices = $entityManager->getRepository(Event::class)->findBy(['pubkey' => $pubkey, 'kind' => KindsEnum::PUBLICATION_INDEX]);
+        // $indices = $entityManager->getRepository(Event::class)->findBy(['pubkey' => $pubkey, 'kind' => KindsEnum::PUBLICATION_INDEX]);
 
         // $nzines = $entityManager->getRepository(Nzine::class)->findBy(['editor' => $pubkey]);
 
@@ -55,7 +53,7 @@ class AuthorController extends AbstractController
             'articles' => $articles,
             'nzine' => null,
             'nzines' => null,
-            'idx' => $indices
+            'idx' => null
         ]);
     }
 

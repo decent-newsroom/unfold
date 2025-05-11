@@ -1,0 +1,4 @@
+<a {% if path('magazine-category', { 'slug' : slug }) in app.request.uri %}class="active"{% endif %}
+   href="{{ path('magazine-category', { 'slug' : slug }) }}">
+    {{ title }}
+</a>

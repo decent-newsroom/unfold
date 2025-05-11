@@ -21,7 +21,6 @@ class ArticleFactory
         $entity->setRaw($source);
         $entity->setEventId($source->id);
         $entity->setCreatedAt(\DateTimeImmutable::createFromFormat('U', (string)$source->created_at));
-        // TODO escape content before saving
         $entity->setContent($source->content);
         $entity->setKind(KindsEnum::from($source->kind));
         $entity->setPubkey($source->pubkey);
@@ -46,6 +45,7 @@ class ArticleFactory
                     break;
                 case 'published_at':
                     $entity->setPublishedAt(\DateTimeImmutable::createFromFormat('U', (string)$tag[1]));
+                    break;
                 case 't':
                     $entity->addTopic($tag[1]);
                     break;

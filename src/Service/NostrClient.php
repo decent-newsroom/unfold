@@ -9,7 +9,6 @@ use App\Factory\ArticleFactory;
 use App\Repository\UserEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use swentel\nostr\Event\Event;
 use swentel\nostr\Filter\Filter;
@@ -21,9 +20,11 @@ use swentel\nostr\Request\Request;
 use swentel\nostr\Subscription\Subscription;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 class NostrClient
 {
@@ -39,8 +40,12 @@ class NostrClient
     {
         // TODO configure read and write relays for logged in users from their 10002 events
         $this->defaultRelaySet = new RelaySet();
-        $this->defaultRelaySet->addRelay(new Relay('wss://relay.damus.io')); // public relay
+        // $this->defaultRelaySet->addRelay(new Relay('wss://relay.damus.io')); // public relay
+        // $this->defaultRelaySet->addRelay(new Relay('wss://relay.primal.net')); // public relay
         $this->defaultRelaySet->addRelay(new Relay('wss://nos.lol')); // public relay
+        // $this->defaultRelaySet->addRelay(new Relay('wss://relay.snort.social')); // public relay
+        $this->defaultRelaySet->addRelay(new Relay('wss://theforest.nostr1.com')); // public relay
+        // $this->defaultRelaySet->addRelay(new Relay('wss://purplepag.es')); // public relay
     }
 
     public function getLoginData($npub)
@@ -51,10 +56,7 @@ class NostrClient
         $filter->setKinds([KindsEnum::METADATA, KindsEnum::RELAY_LIST]);
         $filter->setAuthors([$npub]);
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-        // use default aggregator relay
-        $relay = new Relay('wss://purplepag.es');
-
-        $request = new Request($relay, $requestMessage);
+        $request = new Request($this->defaultRelaySet, $requestMessage);
 
         $response = $request->send();
         // response is an n-dimensional array, where n is the number of relays in the set
@@ -73,46 +75,54 @@ class NostrClient
 
     /**
      * @throws \Exception
-     * @throws InvalidArgumentException
      */
     public function getNpubMetadata($npub)
     {
-        // cache metadata, only fetch new, if no cache hit
-        return $this->cacheApp->get($npub.'-0', function (ItemInterface $item) use ($npub) {
-            $item->expiresAfter(7000);
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::METADATA]);
+        $filter->setAuthors([$npub]);
+        $filters = [$filter];
+        $subscription = new Subscription();
+        $requestMessage = new RequestMessage($subscription->getId(), $filters);
+        $relays = [
+            new Relay('wss://purplepag.es'),
+            new Relay('wss://theforest.nostr1.com'),
+        ];
+        $relaySet = new RelaySet();
+        $relaySet->setRelays($relays);
 
-            $subscription = new Subscription();
-            $subscriptionId = $subscription->setId();
-            $filter = new Filter();
-            $filter->setKinds([KindsEnum::METADATA]);
-            $filter->setAuthors([$npub]);
-            $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-            $relays = new RelaySet();
-            $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
-            $relays->addRelay(new Relay('wss://relay.damus.io')); // major public
-            $relays->addRelay(new Relay('wss://relay.snort.social')); // major public
+        $request = new Request($relaySet, $requestMessage);
+        $response = $request->send();
 
-            $request = new Request($relays, $requestMessage);
-
-            $response = $request->send();
-            // response is an array of arrays
-            foreach ($response as $value) {
-                foreach ($value as $item) {
-                    switch ($item->type) {
-                        case 'EVENT':
-                            return $item->event;
-                        case 'AUTH':
-                            throw new UnauthorizedHttpException('', 'Relay requires authentication');
-                        case 'ERROR':
-                        case 'NOTICE':
-                            throw new \Exception('An error occurred');
-                        default:
-                            return null;
-                    }
+        $meta = [];
+        // response is an array of arrays
+        foreach ($response as $value) {
+            foreach ($value as $item) {
+                switch ($item->type) {
+                    case 'EVENT':
+                        $meta[] = $item->event;
+                        break;
+                    case 'AUTH':
+                        throw new UnauthorizedHttpException('', 'Relay requires authentication');
+                    case 'ERROR':
+                    case 'NOTICE':
+                        throw new \Exception('An error occurred');
+                    default:
+                        // skip
                 }
             }
-            return null;
-        });
+        }
+
+        if (count($meta) > 0) {
+            if (count($meta) > 1) {
+                // sort by date and pick newest
+                usort($meta, function($a, $b) {
+                    return $b->created_at <=> $a->created_at;
+                });
+            }
+            return $meta[0];
+        }
+        return [];
     }
 
     public function getNpubLongForm($npub): void
@@ -132,7 +142,9 @@ class NostrClient
         if ($user && $user->getRelays()) {
             $relays = new RelaySet();
             foreach ($user->getRelays() as $relayArr) {
-                $relays->addRelay(new Relay($relayArr[1]));
+                if ($relayArr[2] == 'write') {
+                    $relays->addRelay(new Relay($relayArr[1]));
+                }
             }
         }
 
@@ -184,8 +196,7 @@ class NostrClient
         $user = $this->tokenStorage->getToken()?->getUser();
         $relays = $this->defaultRelaySet;
         if ($user) {
-            $relays = new RelaySet();
-
+            //$relays = new RelaySet();
         }
 
         $request = new Request($relays, $requestMessage);
@@ -217,16 +228,21 @@ class NostrClient
 
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
 
-        if (empty($relayList)) {
-            $relays = $this->defaultRelaySet;
-        } else {
-            $relays = new RelaySet();
-            $relays->addRelay(new Relay($relayList[0]));
+        $relays = $this->defaultRelaySet;
+        if (!empty($relayList)) {
+           // $relays->addRelay(new Relay($relayList[0]));
         }
 
-        $request = new Request($relays, $requestMessage);
 
-        $response = $request->send();
+        try {
+            $request = new Request($this->defaultRelaySet, $requestMessage);
+            $response = $request->send();
+        } catch (\Exception $e) {
+            // likely a problem with user's relays, go to defaults only
+            $request = new Request($this->defaultRelaySet, $requestMessage);
+            $response = $request->send();
+        }
+
         // response is an n-dimensional array, where n is the number of relays in the set
         // check that response has events in the results
         foreach ($response as $relayRes) {
@@ -282,41 +298,6 @@ class NostrClient
 
     }
 
-    public function getProfileEvents($npub): void
-    {
-        $subscription = new Subscription();
-        $subscriptionId = $subscription->setId();
-        $filter = new Filter();
-        $filter->setKinds([KindsEnum::METADATA, KindsEnum::FOLLOWS, KindsEnum::RELAY_LIST]);
-        $filter->setAuthors([$npub]);
-        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-        // TODO make relays configurable
-        $relays = new RelaySet();
-        $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
-        $relays->addRelay(new Relay('wss://nos.lol')); // default public
-
-        $request = new Request($relays, $requestMessage);
-
-        $response = $request->send();
-        // response is an array of arrays
-        foreach ($response as $value) {
-            foreach ($value as $item) {
-                switch ($item->type) {
-                    case 'EVENT':
-                        dump($item);
-                        break;
-                    case 'AUTH':
-                        throw new UnauthorizedHttpException('', 'Relay requires authentication');
-                    case 'ERROR':
-                    case 'NOTICE':
-                        throw new \Exception('An error occurred');
-                    default:
-                        // nothing to do here
-                }
-            }
-        }
-    }
-
     /**
      * Save user metadata
      */
@@ -358,5 +339,150 @@ class NostrClient
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public function getNpubRelays($pubkey)
+    {
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::RELAY_LIST]);
+        $filter->setAuthors([$pubkey]);
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+        // TODO make relays configurable
+        $relays = new RelaySet();
+        $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
+        $relays->addRelay(new Relay('wss://nos.lol')); // default public
+        $relays->addRelay(new Relay('wss://theforest.nostr1.com')); // default public
+
+        $request = new Request($relays, $requestMessage);
+
+        $response = $request->send();
+
+        // response is an array of arrays
+        foreach ($response as $value) {
+            foreach ($value as $item) {
+                switch ($item->type) {
+                    case 'EVENT':
+                        $event = $item->event;
+                        $relays = [];
+                        foreach ($event->tags as $tag) {
+                            if ($tag[0] === 'r') {
+                                // if not already listed
+                                if (!in_array($tag[1], $relays)) {
+                                    $relays[] = $tag[1];
+                                }
+                            }
+                        }
+                        if (!empty($relays)) {
+                            return $relays;
+                        }
+                        break;
+                    case 'AUTH':
+                        throw new UnauthorizedHttpException('', 'Relay requires authentication');
+                    case 'ERROR':
+                    case 'NOTICE':
+                        throw new \Exception('An error occurred');
+                    default:
+                        // nothing to do here
+                }
+            }
+        }
+        return [];
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getComments($coordinate): array
+    {
+        $list = [];
+        $parts = explode(':', $coordinate);
+
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::COMMENTS, KindsEnum::TEXT_NOTE]);
+        $filter->setTag('#a', [$coordinate]);
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+
+        $request = new Request($this->defaultRelaySet, $requestMessage);
+
+        $response = $request->send();
+        // response is an array of arrays
+        foreach ($response as $value) {
+            foreach ($value as $item) {
+                switch ($item->type) {
+                    case 'EVENT':
+                        dump($item);
+                        $list[] = $item;
+                        break;
+                    case 'AUTH':
+                        throw new UnauthorizedHttpException('', 'Relay requires authentication');
+                    case 'ERROR':
+                    case 'NOTICE':
+                        throw new \Exception('An error occurred');
+                    default:
+                        // nothing to do here
+                }
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getLongFormContentForPubkey(string $pubkey)
+    {
+        $articles = [];
+        // get npub relays, then look for articles
+        $relayList = $this->getNpubRelays($pubkey);
+        $relaySet = $this->defaultRelaySet;
+        foreach ($relayList as $r) {
+            // if (str_starts_with($r, 'wss:')) $relaySet->addRelay(new Relay($r));
+        }
+        // look for last months long-form notes
+        $subscription = new Subscription();
+        $subscriptionId = $subscription->setId();
+        $filter = new Filter();
+        $filter->setKinds([KindsEnum::LONGFORM]);
+        $filter->setLimit(10);
+        $filter->setAuthors([$pubkey]);
+        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+        $request = new Request($relaySet, $requestMessage);
+
+        $response = $request->send();
+
+        // response is an array of arrays
+        foreach ($response as $value) {
+            foreach ($value as $item) {
+                if (is_array($item)) continue;
+                switch ($item->type) {
+                    case 'EVENT':
+                        $eventStr = json_encode($item->event);
+                        // remap to the Event class
+                        $encoders = [new JsonEncoder()];
+                        $normalizers = [new ObjectNormalizer()];
+                        $serializer = new Serializer($normalizers, $encoders);
+                        /** @var \App\Entity\Event $event */
+                        $event = $serializer->deserialize($eventStr, \App\Entity\Event::class, 'json');
+                        $articles[] = $event;
+                        break;
+                    case 'AUTH':
+                        // throw new UnauthorizedHttpException('', 'Relay requires authentication');
+                    case 'ERROR':
+                    case 'NOTICE':
+                        // throw new \Exception('An error occurred');
+                    default:
+                        // nothing to do here
+                }
+            }
+        }
+        return $articles;
     }
 }

@@ -5,9 +5,9 @@
 
 {% block body %}
     {# content #}
-
-    {# replace list with featured #}
-    <twig:Organisms:CardList :list="list" class="article-list"/>
+    {% for item in indices %}
+        <twig:Organisms:FeaturedList :category="item" class="featured-list"/>
+    {% endfor %}
 {% endblock %}
 
 {% block aside %}

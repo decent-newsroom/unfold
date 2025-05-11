@@ -16,7 +16,9 @@
                     {% if article.publishedAt is not null %}
                         <small>{{ article.publishedAt|date('F j, Y') }}</small>
                     {% else %}
-                        <small><twig:ux:icon name="heroicons:pencil" class="icon" /> {{ article.createdAt|date('F j, Y') }}</small><br>
+                        <small>
+{#                            <twig:ux:icon name="heroicons:pencil" class="icon" /> #}
+                            {{ article.createdAt|date('F j, Y') }}</small><br>
                     {% endif %}
                 </span>
             </div>
@@ -49,9 +51,13 @@
 {#    <pre>#}
 {#        {{ article.content }}#}
 {#    </pre>#}
+    <twig:Organisms:Comments current="30032:{{ article.pubkey }}:{{ article.slug }}"></twig:Organisms:Comments>
 {% endblock %}
 
 {% block aside %}
+    {% if is_granted('ROLE_ADMIN') %}
+        <p>30032:{{ article.pubkey }}:{{ article.slug }}</p>
+    {% endif %}
 {#    <h1>Suggestions</h1>#}
 {#    <twig:Organisms:CardList :list="suggestions" />#}
 {% endblock %}

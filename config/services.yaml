@@ -66,3 +66,7 @@ services:
     App\EventListener\PopulateListener:
         tags:
             - { name: kernel.event_listener, event: 'FOS\ElasticaBundle\Event\PostIndexPopulateEvent', method: 'postIndexPopulate' }
+    
+    App\Command\IndexArticlesCommand:
+        arguments:
+            $itemPersister: '@fos_elastica.object_persister.articles'

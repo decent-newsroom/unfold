@@ -15,3 +15,4 @@ framework:
         pools:
             #my.dedicated.cache: null
             subscriptions.cache: null
+            credits.cache: null

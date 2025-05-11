@@ -1,0 +1,43 @@
+<div>
+    {% if list %}
+        <div class="featured-cat hidden">
+            <small><b>{{ title }}</b></small>
+        </div>
+        <div {{ attributes }}>
+            <div>
+                {% set feature = list[0] %}
+                <div class="card">
+                    <a href="{{ path('article-slug', {slug: feature.slug}) }}">
+                        <div class="card-header">
+                            {% if feature.image %}
+                                <img src="{{ feature.image }}" alt="Cover image for {{ feature.title }}">
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h2 class="card-title">{{ feature.title }}</h2>
+                            <p class="lede truncate">
+                                {{ feature.summary }}
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div>
+                {% for item in list %}
+                    {% if item != feature %}
+                        <div class="card">
+                            <a href="{{ path('article-slug', {slug: item.slug}) }}">
+                                <div class="card-body">
+                                    <h2 class="card-title">{{ item.title }}</h2>
+                                    <p class="lede truncate">
+                                        {{ item.summary }}
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>

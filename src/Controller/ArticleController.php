@@ -12,16 +12,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use League\CommonMark\Exception\CommonMarkException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
+use swentel\nostr\Key\Key;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Workflow\WorkflowInterface;
 
 class ArticleController  extends AbstractController
 {
     /**
-     * @throws InvalidArgumentException|CommonMarkException
      * @throws \Exception
      */
     #[Route('/article/{naddr}', name: 'article-naddr')]
@@ -64,7 +65,12 @@ class ArticleController  extends AbstractController
             throw new \Exception('Not a long form article');
         }
 
-        $nostrClient->getLongFormFromNaddr($slug, $relays, $author, $kind);
+        if (empty($relays ?? [])) {
+            // get author npub relays from their config
+            $relays = $nostrClient->getNpubRelays($author);
+        }
+
+        $nostrClient->getLongFormFromNaddr($slug, $relays ?? null, $author, $kind);
 
         if ($slug) {
             return $this->redirectToRoute('article-slug', ['slug' => $slug]);
@@ -86,6 +92,10 @@ class ArticleController  extends AbstractController
         $articles = $repository->findBy(['slug' => $slug]);
         $revisions = count($articles);
 
+        if ($revisions === 0) {
+            throw $this->createNotFoundException('The article could not be found');
+        }
+
         if ($revisions > 1) {
             // sort articles by created at date
             usort($articles, function ($a, $b) {
@@ -97,16 +107,12 @@ class ArticleController  extends AbstractController
             $article = $articles[0];
         }
 
-        if (!$article) {
-            throw $this->createNotFoundException('The article does not exist');
-        }
-
         $cacheKey = 'article_' . $article->getId();
         $cacheItem = $articlesCache->getItem($cacheKey);
-        if (!$cacheItem->isHit()) {
+//        if (!$cacheItem->isHit()) {
             $cacheItem->set($converter->convertToHtml($article->getContent()));
             $articlesCache->save($cacheItem);
-        }
+        //}
 
 //        // suggestions
 //        $suggestions = $repository->findBy(['pubkey' => $article->getPubkey()], ['createdAt' => 'DESC'], 3);
@@ -120,18 +126,23 @@ class ArticleController  extends AbstractController
 //            return $b->getCreatedAt() <=> $a->getCreatedAt();
 //        });
 
-        $meta = $nostrClient->getNpubMetadata($article->getPubkey());
-        if ($meta?->content) {
-            $author = (array) json_decode($meta->content);
-        } else {
-            $author = [
-                'name' => '<anonymous>'
-            ];
+        try {
+            $meta = $nostrClient->getNpubMetadata($article->getPubkey());
+            if ($meta?->content) {
+                $author = (array) json_decode($meta->content);
+            } else {
+                $author = [
+                    'name' => '<anonymous>'
+                ];
+            }
+        } catch (\Exception $e) {
+            // Whatever?
         }
+
 
         return $this->render('Pages/article.html.twig', [
             'article' => $article,
-            'author' => $author,
+            'author' => $author ?? null,
             'content' => $cacheItem->get(),
             //'suggestions' => $suggestions
         ]);
@@ -140,10 +151,13 @@ class ArticleController  extends AbstractController
 
     /**
      * Create new article
+     * @throws InvalidArgumentException
+     * @throws \Exception
      */
     #[Route('/article-editor/create', name: 'editor-create')]
     #[Route('/article-editor/edit/{id}', name: 'editor-edit')]
-    public function newArticle(Request $request, EntityManagerInterface $entityManager, WorkflowInterface $articlePublishingWorkflow, Article $article = null): Response
+    public function newArticle(Request $request, EntityManagerInterface $entityManager, CacheItemPoolInterface $articlesCache,
+                               WorkflowInterface $articlePublishingWorkflow, Article $article = null): Response
     {
         if (!$article) {
             $article = new Article();
@@ -160,24 +174,33 @@ class ArticleController  extends AbstractController
         // Step 3: Check if the form is submitted and valid
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $this->getUser();
-            $currentPubkey = $user->getUserIdentifier();
+            $key = new Key();
+            $currentPubkey = $key->convertToHex($user->getUserIdentifier());
+
             if ($article->getPubkey() === null) {
                 $article->setPubkey($currentPubkey);
             }
 
             // Check which button was clicked
-            if ($form->get('actions')->get('submit')->isClicked()) {
+            if ($form->getClickedButton() === $form->get('actions')->get('submit')) {
                 // Save button was clicked, handle the "Publish" action
                 $this->addFlash('success', 'Product published!');
-            } elseif ($form->get('actions')->get('draft')->isClicked()) {
+            } elseif ($form->getClickedButton() === $form->get('actions')->get('draft')) {
                 // Save and Publish button was clicked, handle the "Draft" action
                 $this->addFlash('success', 'Product saved as draft!');
-            } elseif ($form->get('actions')->get('preview')->isClicked()) {
+            } elseif ($form->getClickedButton() === $form->get('actions')->get('preview')) {
                 // Preview button was clicked, handle the "Preview" action
+                // construct slug from title and save to tags
+                $slugger = new AsciiSlugger();
+                $slug = $slugger->slug($article->getTitle())->lower();
                 $article->setSig(''); // clear the sig
-                $entityManager->persist($article);
-                $entityManager->flush();
-                return $this->redirectToRoute('article-preview', ['id' => $article->getId()]);
+                $article->setSlug($slug);
+                $cacheKey = 'article_' . $currentPubkey . '_' . $article->getSlug();
+                $cacheItem = $articlesCache->getItem($cacheKey);
+                $cacheItem->set($article);
+                $articlesCache->save($cacheItem);
+
+                return $this->redirectToRoute('article-preview', ['d' => $article->getSlug()]);
             }
         }
 
@@ -190,16 +213,28 @@ class ArticleController  extends AbstractController
 
     /**
      * Preview article
+     * @throws InvalidArgumentException
+     * @throws CommonMarkException
+     * @throws \Exception
      */
-    #[Route('/article-preview/{id}', name: 'article-preview')]
-    public function preview($id, EntityManagerInterface $entityManager): Response
+    #[Route('/article-preview/{d}', name: 'article-preview')]
+    public function preview($d, Converter $converter,
+                            CacheItemPoolInterface $articlesCache): Response
     {
-        $repository = $entityManager->getRepository(Article::class);
-        $article = $repository->findOneBy(['id' => $id]);
+        $user = $this->getUser();
+        $key = new Key();
+        $currentPubkey = $key->convertToHex($user->getUserIdentifier());
+
+        $cacheKey = 'article_' . $currentPubkey . '_' . $d;
+        $cacheItem = $articlesCache->getItem($cacheKey);
+        $article = $cacheItem->get();
+
+        $content = $converter->convertToHtml($article->getContent());
 
         return $this->render('pages/article.html.twig', [
             'article' => $article,
-            'author' => $this->getUser(),
+            'content' => $content,
+            'author' => $user->getMetadata(),
         ]);
     }
 

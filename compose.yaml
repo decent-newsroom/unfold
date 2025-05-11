@@ -5,7 +5,7 @@ services:
         context: .
         dockerfile: Dockerfile
     environment:
-      APP_ENCRYPTION_KEY: '%env(APP_ENCRYPTION_KEY)%'
+      APP_ENV: ${APP_ENV:-dev}
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
       MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
@@ -54,6 +54,14 @@ services:
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
+
+  cron:
+    build:
+      context: ./docker/cron
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - php
 
 volumes:
   caddy_data:

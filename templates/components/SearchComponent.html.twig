@@ -1,28 +1,40 @@
 <div {{ attributes }}>
-    {% if interactive %}
-        <label class="search">
-            <input type="search"
-                   placeholder="{{ 'text.search'|trans }}"
-                   data-model="norender|query"
-            />
-            <button type="submit" data-action="live#$render"><twig:ux:icon name="iconoir:search" class="icon" /></button>
-        </label>
-        <!--
-        <div style="text-align: right">
-            <small class="help-text"><em>Powered by Silk</em></small>
-        </div> -->
+        {% if interactive %}
+        <form data-live-action-param="search"
+              data-action="live#action:prevent">
+            <label class="search">
+                <input type="search"
+                       placeholder="{{ 'text.search'|trans }}"
+                       data-model="norender|query"
+                />
+                <button type="submit"><twig:ux:icon name="iconoir:search" class="icon" /></button>
+            </label>
+            <div style="text-align: right">
+                <small class="help-text">
+                    <em>{{ 'credit.balance'|trans({'%count%': credits, 'count': credits}) }}</em>
+                </small>
+            </div>
+        </form>
 
-        <!-- Loading Indicator -->
-        <div style="text-align: center">
-            <span data-loading>{{ 'text.searching'|trans }}</span>
-        </div>
-    {% endif %}
+            <!-- Loading Indicator -->
+            <div style="text-align: center">
+                <div class="spinner" data-loading>
+                    <div class="lds-dual-ring"></div>
+                </div>
+                <span data-loading>{{ 'text.searching'|trans }}</span>
+            </div>
+        {% endif %}
 
-    <!-- Results -->
-    {% if this.results is not empty %}
-        <twig:Organisms:CardList :list="this.results" class="article-list" />
-    {% elseif this.query is not empty %}
-        <p><small>{{ 'text.noResults'|trans }}</small></p>
-    {% endif %}
+        <!-- Results -->
+        {% if this.results is not empty %}
+            <twig:Organisms:CardList :list="this.results" class="article-list" />
+        {% elseif this.query is not empty %}
+            <p><small>{{ 'text.noResults'|trans }}</small></p>
+        {% endif %}
+
+    {% block aside %}
+        {% if credits == 0 %}
+            <twig:GetCreditsComponent />
+        {% endif %}
+    {% endblock %}
 </div>
-
