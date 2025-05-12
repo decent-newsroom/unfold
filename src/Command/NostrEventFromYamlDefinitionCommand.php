@@ -11,6 +11,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -18,10 +19,11 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[AsCommand(name: 'app:yaml_to_nostr', description: 'Traverses folders, converts YAML files to JSON using object mapping, and saves the result in Redis cache.')]
 class NostrEventFromYamlDefinitionCommand extends Command
 {
-    const private_key = 'nsec17ygfd40ckdwmrl4mzhnzzdr3c8j5kvnavgrct35hglha9ue396dslsterv';
+    private string $nsec;
 
-    public function __construct(private readonly CacheInterface $redisCache)
+    public function __construct(private readonly CacheInterface $redisCache, ParameterBagInterface $bag)
     {
+        $this->nsec = $bag->get('nsec');
         parent::__construct();
     }
 
@@ -56,12 +58,11 @@ class NostrEventFromYamlDefinitionCommand extends Command
                 // Deserialize YAML content into an Event object
                 $event = new Event();
                 $event->setKind(30040);
-                $event->setPublicKey('e00983324f38e8522ffc01d5c064727e43fe4c43d86a5c2a0e73290674e496f8');
                 $tags = $yamlContent['tags'];
                 $event->setTags($tags);
 
                 $signer = new Sign();
-                $signer->signEvent($event, NostrEventFromYamlDefinitionCommand::private_key);
+                $signer->signEvent($event, $this->nsec);
 
                 // Save to cache
                 $slug = array_filter($tags, function ($tag) {

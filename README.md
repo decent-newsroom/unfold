@@ -40,6 +40,32 @@ for publishing art and stock images to make them available and discoverable to b
 
 A content management system for creating and updating journals and managing subscriptions. 
 
-### Silk Search and Index DVM
+### Silk Search and Index
 
 An integrated service that provides on-demand indexing and search.
+
+## Setup
+
+### Clone the repository
+
+```bash
+git clone https://github.com/decent-newsroom/newsroom.git
+cd newsroom
+```
+
+### Create the .env file
+
+Copy the example file `.env.dist` and replace placeholders with your actual configuration.
+
+### Add a project encryption key and nsec
+Symfony uses a vault mechanism for managing secrets securely. 
+To save the nsec, run this command inside your Docker container:
+
+```bash
+docker-compose exec php bin/console secrets:set APP_NSEC
+```
+
+To save the encryption key:
+```bash
+docker-compose exec php bin/console secrets:set APP_ENCRYPTION_KEY
+```
