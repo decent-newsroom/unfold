@@ -14,6 +14,8 @@ use swentel\nostr\Key\Key;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class AuthorController extends AbstractController
 {
@@ -22,14 +24,37 @@ class AuthorController extends AbstractController
      * @throws InvalidArgumentException
      */
     #[Route('/p/{npub}', name: 'author-profile', requirements: ['npub' => '^npub1.*'])]
-    public function index($npub, EntityManagerInterface $entityManager, NostrClient $client): Response
+    public function index($npub, CacheInterface $redisCache, EntityManagerInterface $entityManager, NostrClient $client): Response
     {
         $keys = new Key();
         $pubkey = $keys->convertToHex($npub);
+        $relays = [];
 
-        $meta = $client->getNpubMetadata($pubkey);
+        try {
+            $cacheKey = '0_' . $pubkey;
 
-        $author = json_decode($meta->content ?? '{}');
+            $author = $redisCache->get($cacheKey, function (ItemInterface $item) use ($pubkey, $client) {
+                $item->expiresAfter(3600); // 1 hour, adjust as needed
+
+                $meta = $client->getNpubMetadata($pubkey);
+                return (array) json_decode($meta->content ?? '{}');
+            });
+
+        } catch (InvalidArgumentException | \Exception $e) {
+            // nothing to do
+        }
+
+        try {
+            $cacheKey = '10002_' . $pubkey;
+
+            $relays = $redisCache->get($cacheKey, function (ItemInterface $item) use ($pubkey, $client) {
+                $item->expiresAfter(3600); // 1 hour, adjust as needed
+
+                return $client->getNpubRelays($pubkey);
+            });
+        } catch (InvalidArgumentException | \Exception $e) {
+            // nothing to do
+        }
 
         $list = $client->getLongFormContentForPubkey($pubkey);
 
@@ -53,7 +78,8 @@ class AuthorController extends AbstractController
             'articles' => $articles,
             'nzine' => null,
             'nzines' => null,
-            'idx' => null
+            'idx' => null,
+            'relays' => $relays
         ]);
     }
 

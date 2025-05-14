@@ -54,7 +54,13 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cache for dynamic routes
   const isDynamic = request.url.includes('/cat/') ;
-  if (isDynamic) {
+  // Exclude dynamic paths
+  const isExcluded =
+    request.url.startsWith('/login') ||
+    request.url.startsWith('/logout') ||
+    request.url.startsWith('/_components/');
+
+  if (isDynamic || isExcluded) {
     return; // Don't intercept
   }
 

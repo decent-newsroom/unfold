@@ -13,7 +13,8 @@ fos_elastica:
                 title: ~
                 summary: ~
                 content: ~
-                slug: ~
+                slug:
+                    type: keyword
                 topics: ~
             persistence:
                 driver: orm

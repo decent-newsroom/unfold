@@ -9,9 +9,16 @@
     <h1><twig:atoms:NameOrNpub :author="author"></twig:atoms:NameOrNpub></h1>
     {% if author.about is defined %}
         <p class="lede">
-            {{ author.about }}
+            {{ author.about|linkify|mentionify }}
         </p>
     {% endif %}
+
+    {% if relays|length > 0 %}
+        {% for rel in relays %}
+            <p>{{ rel }}</p>
+        {% endfor %}
+    {% endif %}
+
 
 {#    {% if app.user and app.user.userIdentifier is same as npub %}#}
 {#    <div id="invoice-component" class="p-4 bg-gray-100 rounded-lg">#}

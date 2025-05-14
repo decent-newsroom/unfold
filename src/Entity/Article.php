@@ -23,7 +23,7 @@ class Article
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(length: 225, nullable: true)]
-    private ?int $id = null;
+    private null|int|string $id = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private $raw = null;
@@ -80,12 +80,12 @@ class Article
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $ratingPositive = null;
 
-    public function getId(): ?int
+    public function getId(): null|int|string
     {
         return $this->id;
     }
 
-    public function setId(int $id): static
+    public function setId(int|string $id): static
     {
         $this->id = $id;
 
@@ -133,8 +133,14 @@ class Article
         return $this->kind;
     }
 
-    public function setKind(?KindsEnum $kind): static
+    public function setKind(null|KindsEnum|int $kind): static
     {
+        if (is_int($kind)) {
+            $kind = KindsEnum::tryFrom($kind);
+            if ($kind === null) {
+                throw new \InvalidArgumentException("Invalid kind value: $kind");
+            }
+        }
         $this->kind = $kind;
 
         return $this;
@@ -181,8 +187,11 @@ class Article
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable|int $createdAt): static
     {
+        if (is_int($createdAt)) {
+            $createdAt = (new \DateTimeImmutable())->setTimestamp($createdAt);
+        }
         $this->createdAt = $createdAt;
 
         return $this;

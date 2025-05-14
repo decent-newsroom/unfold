@@ -125,8 +125,8 @@ class Event
     public function getSummary(): ?string
     {
         foreach ($this->getTags() as $tag) {
-            if (array_key_first($tag) === 'summary') {
-                return $tag['summary'];
+            if ($tag[0] === 'summary') {
+                return $tag[1];
             }
         }
         return null;
@@ -135,8 +135,8 @@ class Event
     public function getSlug(): ?string
     {
         foreach ($this->getTags() as $tag) {
-            if (array_key_first($tag) === 'd') {
-                return $tag['d'];
+            if ($tag[0] === 'd') {
+                return $tag[1];
             }
         }
 

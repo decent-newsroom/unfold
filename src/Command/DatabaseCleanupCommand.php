@@ -13,7 +13,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'db:cleanup', description: 'Remove articles with do_not_index rating')]
-class DatabaseCleanupCommand extends Command
+class
+
+
+ DatabaseCleanupCommand extends Command
 {
     public function __construct(private readonly EntityManagerInterface $entityManager)
     {

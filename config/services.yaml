@@ -71,3 +71,7 @@ services:
     App\Command\IndexArticlesCommand:
         arguments:
             $itemPersister: '@fos_elastica.object_persister.articles'
+                
+    App\Command\NostrEventFromYamlDefinitionCommand:
+        arguments:
+            $itemPersister: '@fos_elastica.object_persister.articles'

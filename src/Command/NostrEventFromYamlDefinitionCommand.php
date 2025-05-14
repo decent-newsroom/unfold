@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\Article;
+use Doctrine\ORM\EntityManagerInterface;
+use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use swentel\nostr\Event\Event;
 use swentel\nostr\Sign\Sign;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -21,7 +24,9 @@ class NostrEventFromYamlDefinitionCommand extends Command
 {
     private string $nsec;
 
-    public function __construct(private readonly CacheInterface $redisCache, ParameterBagInterface $bag)
+    public function __construct(private readonly CacheInterface           $redisCache, ParameterBagInterface $bag,
+                                private readonly ObjectPersisterInterface $itemPersister,
+                                private readonly EntityManagerInterface   $entityManager)
     {
         $this->nsec = $bag->get('nsec');
         parent::__construct();
@@ -49,6 +54,8 @@ class NostrEventFromYamlDefinitionCommand extends Command
             return Command::SUCCESS;
         }
 
+        $articleSlugsList = [];
+
         foreach ($finder as $file) {
             $filePath = $file->getRealPath();
             $output->writeln("<info>Processing file: $filePath</info>");
@@ -60,6 +67,13 @@ class NostrEventFromYamlDefinitionCommand extends Command
                 $event->setKind(30040);
                 $tags = $yamlContent['tags'];
                 $event->setTags($tags);
+                $items = array_filter($tags, function ($tag) {
+                    return ($tag[0] === 'a');
+                });
+                foreach ($items as $one) {
+                    $parts = explode(':', $one[1]);
+                    $articleSlugsList[] = end($parts);
+                }
 
                 $signer = new Sign();
                 $signer->signEvent($event, $this->nsec);
@@ -79,6 +93,19 @@ class NostrEventFromYamlDefinitionCommand extends Command
                 $output->writeln("<error>Error deserializing YAML in file: $filePath. Message: {$e->getMessage()}</error>");
                 continue;
             }
+        }
+
+        // look up all articles in the db and push to index whatever you find
+        $articles = $this->entityManager->getRepository(Article::class)->createQueryBuilder('a')
+            ->where('a.slug IN (:slugs)')
+            ->setParameter('slugs', $articleSlugsList)
+            ->getQuery()
+            ->getResult();
+
+        // to elastic
+        if (count($articles) > 0 ) {
+            $this->itemPersister->insertMany($articles); // Insert or skip existing
+            $output->writeln('<info>Added to index.</info>');
         }
 
         $output->writeln('<info>Conversion complete.</info>');

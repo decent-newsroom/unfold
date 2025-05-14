@@ -2,10 +2,17 @@
 
 namespace App\Twig\Components\Organisms;
 
+use App\Entity\Article;
+use App\Factory\ArticleFactory;
+use App\Service\NostrClient;
 use Elastica\Query\MatchQuery;
+use Elastica\Query\Terms;
 use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use swentel\nostr\Event\Event;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
@@ -16,12 +23,15 @@ final class FeaturedList
     public string $title;
     public array $list = [];
 
-    public function __construct(private readonly CacheInterface $redisCache, private readonly FinderInterface $finder)
+    public function __construct(
+        private readonly CacheInterface $redisCache,
+        private readonly FinderInterface $finder)
     {
     }
 
     /**
      * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function mount($category): void
     {
@@ -31,6 +41,7 @@ final class FeaturedList
             throw new \Exception('Not found');
         });
 
+        $slugs = [];
         foreach ($catIndex->getTags() as $tag) {
             if ($tag[0] === 'title') {
                 $this->title = $tag[1];
@@ -38,15 +49,13 @@ final class FeaturedList
             if ($tag[0] === 'a') {
                 $parts = explode(':', $tag[1]);
                 if (count($parts) === 3) {
-                    $fieldQuery = new MatchQuery();
-                    $fieldQuery->setFieldQuery('slug', $parts[2]);
-                    $res = $this->finder->find($fieldQuery);
-                    $this->list[] = $res[0];
+                    $slugs[] = $parts[2];
                 }
             }
-            if (count($this->list) > 3) {
-                break;
-            }
         }
+
+        $query = new Terms('slug', array_values($slugs));
+        $res = $this->finder->find($query);
+        $this->list = array_slice($res, 0, 4);
     }
 }
