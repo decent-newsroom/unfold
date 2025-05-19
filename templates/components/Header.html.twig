@@ -1,6 +1,9 @@
-<header class="header">
-    <div class="header__logo"><h1 class="brand"><a href="/">newsroom</a></h1></div>
-    <div class="header__categories">
+<header class="header" data-controller="menu" {{ attributes }}>
+    <div class="header__logo">
+        <h1 class="brand"><a href="/">newsroom</a></h1>
+        <button class="hamburger" data-action="click->menu#toggle" aria-label="Menu">&#9776;</button>
+    </div>
+    <div class="header__categories"  data-menu-target="menu">
         <ul>
             {% for category in cats %}
                 <li><twig:Molecules:CategoryLink coordinate="{{ category }}" /></li>

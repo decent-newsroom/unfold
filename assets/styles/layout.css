@@ -48,11 +48,63 @@ nav a:hover {
     text-decoration: none;
 }
 
+header {
+    position: fixed;
+    width: 100vw;
+    top: 0;
+    left: 0;
+}
+
+/* Hamburger button */
+.hamburger {
+    cursor: pointer;
+    display: none; /* Hidden on desktop */
+}
+
+.header__logo {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .header__logo {
+        justify-content: space-around;
+    }
+
+    .header__categories {
+        display: none;
+        flex-direction: column;
+        padding-top: 1rem;
+    }
+
+    .header__categories.active {
+        display: flex;
+    }
+
+    .hamburger {
+        display: block;
+        align-self: center;
+    }
+
+    .header__categories ul {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
 /* Main content */
 main {
+    margin-top: 140px;
     flex-grow: 1;
     padding: 1em;
     word-break: break-word;
+}
+
+.user-menu {
+    position: fixed;
+    top: 180px;
 }
 
 /* Right sidebar */
@@ -90,6 +142,7 @@ dt {
         display: none; /* Hide the sidebars on small screens */
     }
     main {
+        margin-top: 120px;
         width: 100%;
     }
 }

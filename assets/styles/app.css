@@ -262,9 +262,8 @@ div:nth-child(odd) .featured-list {
     z-index: 1000; /* Ensure it stays on top */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    padding: 10px 20px;
     background-color: var(--color-bg); /* Black background */
     border-bottom: 1px solid var(--color-border); /* White bottom border */
 }

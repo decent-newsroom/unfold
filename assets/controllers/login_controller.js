@@ -8,7 +8,7 @@ export default class extends Controller {
   async loginAct() {
     const tags = [
       ['u', window.location.origin + '/login'],
-      ['method', 'GET']
+      ['method', 'POST']
     ]
     const ev = {
       created_at: Math.floor(Date.now()/1000),
@@ -20,15 +20,14 @@ export default class extends Controller {
     const signed = await window.nostr.signEvent(ev);
     // base64 encode and send as Auth header
     const result = await fetch('/login', {
-      method: 'GET',
+      method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'Authorization': 'Nostr ' + btoa(JSON.stringify(signed))
       }
     }).then(response => {
-      if (response.ok) return response.json();
-      return false;
-    }).then(res => {
-      return res;
+      if (!response.ok) return false;
+      return 'Authentication Successful';
     })
     if (!!result) {
       this.component.render();

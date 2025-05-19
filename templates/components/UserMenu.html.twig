@@ -1,4 +1,4 @@
-<div {{ attributes.defaults(stimulus_controller('login')) }}>
+<div class="user-menu" {{ attributes.defaults(stimulus_controller('login')) }}>
     {% if app.user %}
         <p>Hello, {{ app.user.displayName }}</p>
         {% if is_granted('ROLE_ADMIN') %}
@@ -31,4 +31,9 @@
     {% else %}
         <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>{{ 'heading.logIn'|trans }}</twig:Atoms:Button>
     {% endif %}
+    <div style="text-align: center">
+        <div class="spinner" data-loading>
+            <div class="lds-dual-ring"></div>
+        </div>
+    </div>
 </div>
