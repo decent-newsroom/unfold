@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\Article;
+use App\Enum\IndexStatusEnum;
+use App\Factory\ArticleFactory;
+use App\Service\NostrClient;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use swentel\nostr\Event\Event;
@@ -24,7 +27,10 @@ class NostrEventFromYamlDefinitionCommand extends Command
 {
     private string $nsec;
 
-    public function __construct(private readonly CacheInterface           $redisCache, ParameterBagInterface $bag,
+    public function __construct(private readonly CacheInterface           $redisCache,
+                                private readonly NostrClient              $client,
+                                private readonly ArticleFactory           $factory,
+                                ParameterBagInterface                     $bag,
                                 private readonly ObjectPersisterInterface $itemPersister,
                                 private readonly EntityManagerInterface   $entityManager)
     {
@@ -95,12 +101,29 @@ class NostrEventFromYamlDefinitionCommand extends Command
             }
         }
 
+        // crawl relays for all the articles and save to db
+        $fresh = $this->client->getArticles($articleSlugsList);
+        foreach ($fresh as $item) {
+            $article = $this->factory->createFromLongFormContentEvent($item);
+            $this->entityManager->persist($article);
+        }
+        $this->entityManager->flush();
+
         // look up all articles in the db and push to index whatever you find
         $articles = $this->entityManager->getRepository(Article::class)->createQueryBuilder('a')
             ->where('a.slug IN (:slugs)')
             ->setParameter('slugs', $articleSlugsList)
             ->getQuery()
             ->getResult();
+
+        // mark all of those for indexing
+        foreach ($articles as $article) {
+            if ($article->getIndexStatus() === IndexStatusEnum::NOT_INDEXED) {
+                $article->setIndexStatus(IndexStatusEnum::TO_BE_INDEXED);
+                $this->entityManager->persist($article);
+            }
+        }
+        $this->entityManager->flush();
 
         // to elastic
         if (count($articles) > 0 ) {
