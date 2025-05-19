@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserEntityRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -12,7 +13,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 #[ORM\Entity(repositoryClass: UserEntityRepository::class)]
 #[ORM\Table(name: "app_user")]
-class User implements UserInterface
+class User implements UserInterface, EquatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -111,5 +112,10 @@ class User implements UserInterface
     public function getRelays(): ?array
     {
         return $this->relays;
+    }
+
+    public function isEqualTo(UserInterface $user): bool
+    {
+        return $this->getUserIdentifier() === $user->getUserIdentifier();
     }
 }

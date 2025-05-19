@@ -17,9 +17,13 @@ class LoginController extends AbstractController
      public function index(#[CurrentUser] ?User $user): Response
     {
         if (null !== $user) {
-            return new JsonResponse('Authentication Successful', 200);
+            return new JsonResponse([
+                'message' => 'Authentication Successful',
+            ], 200);
         }
 
-        return new JsonResponse('Unauthenticated', 401);
+        return new JsonResponse([
+            'message' => 'Unauthenticated',
+        ], 401);
     }
 }

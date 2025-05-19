@@ -10,6 +10,7 @@ security:
             security: false
         main:
             lazy: true
+            stateless: false
             provider: user_dto_provider
             custom_authenticators:
                 - App\Security\NostrAuthenticator

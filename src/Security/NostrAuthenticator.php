@@ -5,6 +5,8 @@ namespace App\Security;
 use App\Entity\Event;
 use Mdanter\Ecc\Crypto\Signature\SchnorrSignature;
 use swentel\nostr\Key\Key;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -20,6 +22,9 @@ use Symfony\Component\Serializer\Serializer;
 
 class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAuthenticatorInterface
 {
+    public function __construct(
+        private readonly Security $security
+    ) {}
 
     public function supports(Request $request): ?bool
     {
@@ -59,7 +64,7 @@ class NostrAuthenticator extends AbstractAuthenticator implements InteractiveAut
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        return null;
+        return new Response('Authentication Successful', 200);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
