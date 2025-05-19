@@ -33,4 +33,10 @@ class StaticController extends AbstractController
     {
         return $this->render('static/tos.html.twig');
     }
+
+    #[Route('/manifest.webmanifest', name: 'pwa_manifest')]
+    public function manifest(): Response
+    {
+        return $this->render('static/manifest.webmanifest.twig', [], new Response('', 200, ['Content-Type' => 'application/manifest+json']));
+    }
 }
