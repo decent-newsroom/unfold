@@ -109,10 +109,10 @@ class ArticleController  extends AbstractController
 
         $cacheKey = 'article_' . $article->getId();
         $cacheItem = $articlesCache->getItem($cacheKey);
-//        if (!$cacheItem->isHit()) {
+        if (!$cacheItem->isHit()) {
             $cacheItem->set($converter->convertToHtml($article->getContent()));
             $articlesCache->save($cacheItem);
-        //}
+        }
 
 //        // suggestions
 //        $suggestions = $repository->findBy(['pubkey' => $article->getPubkey()], ['createdAt' => 'DESC'], 3);
