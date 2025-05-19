@@ -22,8 +22,8 @@ class Article
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(length: 225, nullable: true)]
-    private null|int|string $id = null;
+    #[ORM\Column(length: 225)]
+    private ?int $id = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private $raw = null;

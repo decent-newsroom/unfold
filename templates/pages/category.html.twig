@@ -1,5 +1,13 @@
 {% extends 'base.html.twig' %}
 
+{% block ogtags %}
+    <meta property="og:title" content="{{ category.title }} - Newsroom">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ app.request.uri }}">
+    <meta property="og:description" content="{{ category.summary }}">
+    <meta property="og:site_name" content="Newsroom">
+{% endblock %}
+
 {% block nav %}
 {% endblock %}
 

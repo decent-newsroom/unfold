@@ -177,22 +177,24 @@ class NostrClient
      * Long-form Content
      * NIP-23
      */
-    public function getLongFormContent(): void
+    public function getLongFormContent($from = null, $to = null): void
     {
         $subscription = new Subscription();
         $subscriptionId = $subscription->setId();
         $filter = new Filter();
         $filter->setKinds([KindsEnum::LONGFORM]);
-        // TODO make filters configurable
-        $filter->setSince(strtotime('-1 week')); //
+        $filter->setSince(strtotime('-1 week')); // default
+        if ($from !== null) {
+            $filter->setSince($from);
+        }
+        if ($to !== null) {
+            $filter->setUntil($to);
+        }
         $requestMessage = new RequestMessage($subscriptionId, [$filter]);
 
         // if user is logged in, use their settings
         $user = $this->tokenStorage->getToken()?->getUser();
         $relays = $this->defaultRelaySet;
-        if ($user) {
-            //$relays = new RelaySet();
-        }
 
         $request = new Request($relays, $requestMessage);
 
@@ -486,7 +488,9 @@ class NostrClient
             foreach ($value as $item) {
                 switch ($item->type) {
                     case 'EVENT':
-                        $articles[] = $item->event;
+                        if (!isset($articles[$item->event->id])) {
+                            $articles[$item->event->id] = $item->event;
+                        }
                         break;
                     case 'AUTH':
                         throw new UnauthorizedHttpException('', 'Relay requires authentication');

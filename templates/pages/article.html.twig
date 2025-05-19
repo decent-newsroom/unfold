@@ -1,5 +1,16 @@
 {% extends 'base.html.twig' %}
 
+{% block ogtags %}
+    <meta property="og:title" content="{{ article.title }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ app.request.uri }}">
+    {% if article.image %}
+        <meta property="og:image" content="{{ article.image }}">
+    {% endif %}
+    <meta property="og:description" content="{{ article.summary|striptags|u.truncate(159,'…')|e }}">
+    <meta property="og:site_name" content="Newsroom">
+{% endblock %}
+
 {% block body %}
     <div class="card">
         <div class="card-header">

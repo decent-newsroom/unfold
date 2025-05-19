@@ -10,7 +10,10 @@
     <link rel="shortcut icon" href="{{ asset('icons/favicon.ico') }}" />
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="Newsroom" />
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <link rel="manifest" href="{{ path('pwa_manifest') }}">
+
+    {% block ogtags %}
+    {% endblock %}
 
     {% block stylesheets %}
     {% endblock %}
@@ -19,9 +22,9 @@
     {% endblock %}
 </head>
 <body data-controller="service-worker">
-<header>
-    <twig:Header />
-</header>
+
+<twig:Header />
+
 
 <div class="layout">
     <nav>

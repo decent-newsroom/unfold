@@ -56,6 +56,27 @@ final class FeaturedList
 
         $query = new Terms('slug', array_values($slugs));
         $res = $this->finder->find($query);
-        $this->list = array_slice($res, 0, 4);
+
+        // Create a map of slug => item to remove duplicates
+        $slugMap = [];
+
+        foreach ($res as $item) {
+            $slug = $item->getSlug();
+
+            if ($slug !== '' && !isset($slugMap[$slug])) {
+                $slugMap[$slug] = $item;
+            }
+        }
+
+        if (!empty($res)) {
+            foreach ($res as $result) {
+                if (!isset($slugMap[$result->getSlug()])) {
+                    $slugMap[$result->getSlug()] = $result;
+                }
+            }
+        }
+
+
+        $this->list = array_slice(array_values($slugMap), 0, 4);
     }
 }

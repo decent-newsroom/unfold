@@ -4,19 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Factory\ArticleFactory;
-use App\Service\NostrClient;
-use Elastica\Query;
-use Elastica\Query\MatchQuery;
 use Elastica\Query\Terms;
 use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\Cache\CacheInterface;
 
 class DefaultController extends AbstractController
@@ -54,7 +47,6 @@ class DefaultController extends AbstractController
      */
     #[Route('/cat/{slug}', name: 'magazine-category')]
     public function magCategory($slug, CacheInterface $redisCache,
-                                NostrClient $client, ArticleFactory $articleFactory,
                                 FinderInterface $finder): Response
     {
         $catIndex = $redisCache->get('magazine-' . $slug, function (){
@@ -63,9 +55,15 @@ class DefaultController extends AbstractController
 
         $list = [];
         $slugs = [];
-        $returnedSlugs = [];
+        $category = [];
 
         foreach ($catIndex->getTags() as $tag) {
+            if ($tag[0] === 'title') {
+                $category['title'] = $tag[1];
+            }
+            if ($tag[0] === 'summary') {
+                $category['summary'] = $tag[1];
+            }
             if ($tag[0] === 'a') {
                 $parts = explode(':', $tag[1]);
                 if (count($parts) === 3) {
@@ -83,12 +81,10 @@ class DefaultController extends AbstractController
             $slugMap = [];
 
             foreach ($articles as $item) {
-                // $item = $articleFactory->createFromLongFormContentEvent($article);
                 $slug = $item->getSlug();
 
                 if ($slug !== '' && !isset($slugMap[$slug])) {
                     $slugMap[$slug] = $item;
-                    $returnedSlugs[] = $slug;
                 }
             }
 
@@ -111,11 +107,9 @@ class DefaultController extends AbstractController
             $list = array_values($results);
         }
 
-        // if any are missing, look in index
-
-
         return $this->render('pages/category.html.twig', [
             'list' => $list,
+            'category' => $category,
             'index' => $catIndex
         ]);
     }
