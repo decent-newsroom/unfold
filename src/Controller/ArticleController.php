@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Enum\KindsEnum;
 use App\Form\EditorType;
 use App\Service\NostrClient;
+use App\Service\RedisCacheService;
 use App\Util\Bech32\Bech32Decoder;
 use App\Util\CommonMark\Converter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -83,8 +84,13 @@ class ArticleController  extends AbstractController
      * @throws InvalidArgumentException|CommonMarkException
      */
     #[Route('/article/d/{slug}', name: 'article-slug')]
-    public function article(EntityManagerInterface $entityManager, CacheItemPoolInterface $articlesCache,
-                            NostrClient $nostrClient, Converter $converter, $slug): Response
+    public function article(
+        $slug,
+        EntityManagerInterface $entityManager,
+        RedisCacheService $redisCacheService,
+        CacheItemPoolInterface $articlesCache,
+        Converter $converter
+    ): Response
     {
         $article = null;
         // check if an item with same eventId already exists in the db
@@ -114,37 +120,16 @@ class ArticleController  extends AbstractController
             $articlesCache->save($cacheItem);
         }
 
-//        // suggestions
-//        $suggestions = $repository->findBy(['pubkey' => $article->getPubkey()], ['createdAt' => 'DESC'], 3);
-//        // skip current, if listed in suggestions
-//        $suggestions = array_filter($suggestions, function ($s) use ($article) {
-//           return $s->getId() !== $article->getId();
-//        });
-//        $suggestions = array_merge($suggestions, $repository->findBy([], ['createdAt' => 'DESC'], 6 - count($suggestions)));
-//        // sort by date
-//        usort($suggestions, function ($a, $b) {
-//            return $b->getCreatedAt() <=> $a->getCreatedAt();
-//        });
-
-        try {
-            $meta = $nostrClient->getNpubMetadata($article->getPubkey());
-            if ($meta?->content) {
-                $author = (array) json_decode($meta->content);
-            } else {
-                $author = [
-                    'name' => '<anonymous>'
-                ];
-            }
-        } catch (\Exception $e) {
-            // Whatever?
-        }
+        $key = new Key();
+        $npub = $key->convertPublicKeyToBech32($article->getPubkey());
+        $author = $redisCacheService->getMetadata($npub);
 
 
         return $this->render('Pages/article.html.twig', [
             'article' => $article,
-            'author' => $author ?? null,
+            'author' => $author,
+            'npub' => $npub,
             'content' => $cacheItem->get(),
-            //'suggestions' => $suggestions
         ]);
     }
 

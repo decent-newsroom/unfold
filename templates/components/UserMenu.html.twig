@@ -1,6 +1,6 @@
 <div class="user-menu" {{ attributes.defaults(stimulus_controller('login')) }}>
     {% if app.user %}
-        <p>Hello, {{ app.user.displayName }}</p>
+        <p>Hello, {{ app.user.name }}</p>
         {% if is_granted('ROLE_ADMIN') %}
 {#        <ul>#}
 {#            <li>#}

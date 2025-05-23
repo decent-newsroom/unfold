@@ -10,10 +10,13 @@ fos_elastica:
         articles:
             indexable_callback: [ 'App\Util\IndexableArticleChecker', 'isIndexable' ]
             properties:
+                createdAt: ~
                 title: ~
                 summary: ~
                 content: ~
                 slug:
+                    type: keyword
+                pubkey:
                     type: keyword
                 topics: ~
             persistence:

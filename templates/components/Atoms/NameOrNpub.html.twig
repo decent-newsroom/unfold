@@ -3,5 +3,7 @@
         {{ author.display_name }}
     {% elseif author.name is defined and author.name is not empty %}
         {{ author.name }}
+    {% else %}
+        {{ npub|shortenNpub }}
     {% endif %}
 </span>

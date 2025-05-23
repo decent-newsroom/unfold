@@ -72,3 +72,9 @@ blockquote p {
     text-decoration: none;
     font-weight: bold;
 }
+
+.embedded-content iframe {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+}

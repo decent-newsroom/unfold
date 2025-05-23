@@ -2,22 +2,22 @@
 
 {% block body %}
 
-{#    {% if author.image is defined %}#}
-{#        <img src="{{ author.image }}" class="avatar" alt="{{ author.name }}" />#}
-{#    {% endif %}#}
+    {% if author.image is defined %}
+        <img src="{{ author.image }}" class="avatar" alt="{{ author.name }}" onerror="this.style.display = 'none'" />
+    {% endif %}
 
-    <h1><twig:atoms:NameOrNpub :author="author"></twig:atoms:NameOrNpub></h1>
+    <h1><twig:atoms:NameOrNpub :author="author" :npub="npub"></twig:atoms:NameOrNpub></h1>
     {% if author.about is defined %}
         <p class="lede">
             {{ author.about|linkify|mentionify }}
         </p>
     {% endif %}
 
-    {% if relays|length > 0 %}
-        {% for rel in relays %}
-            <p>{{ rel }}</p>
-        {% endfor %}
-    {% endif %}
+{#    {% if relays|length > 0 %}#}
+{#        {% for rel in relays %}#}
+{#            <p>{{ rel }}</p>#}
+{#        {% endfor %}#}
+{#    {% endif %}#}
 
 
 {#    {% if app.user and app.user.userIdentifier is same as npub %}#}
@@ -52,14 +52,14 @@
 {#    </div>#}
 {#    {% endif %}#}
 
-    {% if nzine %}
-        <a href="{{ path('nzine_view', {npub: author.npub}) }}">View as N-Zine</a>
+{#    {% if nzine %}#}
+{#        <a href="{{ path('nzine_view', {npub: author.npub}) }}">View as N-Zine</a>#}
 
-        <h2>List of indices</h2>
-        {% for i in idx %}
-            {{ i.title }}
-        {% endfor %}
-    {% endif %}
+{#        <h2>List of indices</h2>#}
+{#        {% for i in idx %}#}
+{#            {{ i.title }}#}
+{#        {% endfor %}#}
+{#    {% endif %}#}
 
     <twig:Organisms:CardList :list="articles" class="article-list"></twig:Organisms:CardList>
 {% endblock %}

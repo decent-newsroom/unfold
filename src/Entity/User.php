@@ -15,6 +15,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Table(name: "app_user")]
 class User implements UserInterface, EquatableInterface
 {
+    private static array $sessionData = [];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -84,38 +86,48 @@ class User implements UserInterface, EquatableInterface
         return $this->getNpub();
     }
 
-    public function setMetadata($metadata)
+    public function setMetadata(?object $metadata): void
     {
-        $this->metadata = $metadata;
+        self::$sessionData[$this->getNpub()]['metadata'] = $metadata;
     }
 
-    public function getMetadata()
+    public function getMetadata(): ?object
     {
-        return $this->metadata;
+        return self::$sessionData[$this->getNpub()]['metadata'] ?? null;
     }
 
-    public function getDisplayName() {
-        return $this->metadata->name;
-    }
-
-    /**
-     * @param mixed $relays
-     */
-    public function setRelays($relays): void
+    public function setRelays(?array $relays): void
     {
-        $this->relays = $relays;
+        self::$sessionData[$this->getNpub()]['relays'] = $relays;
     }
 
-    /**
-     * @return null|array
-     */
     public function getRelays(): ?array
     {
-        return $this->relays;
+        return self::$sessionData[$this->getNpub()]['relays'] ?? null;
     }
 
     public function isEqualTo(UserInterface $user): bool
     {
         return $this->getUserIdentifier() === $user->getUserIdentifier();
+    }
+
+    public function __serialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'npub' => $this->npub,
+            'roles' => $this->roles,
+            'metadata' => $this->metadata,
+            'relays' => $this->relays
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->id = $data['id'];
+        $this->npub = $data['npub'];
+        $this->roles = $data['roles'];
+        $this->metadata = $data['metadata'];
+        $this->relays = $data['relays'];
     }
 }

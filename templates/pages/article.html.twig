@@ -20,7 +20,7 @@
             <div class="byline">
                 <span>
                     {{ 'text.byline'|trans }} <a href="{{ path('author-redirect', {'pubkey': article.pubkey}) }}">
-                        <twig:atoms:NameOrNpub :author="author" />
+                        <twig:atoms:NameOrNpub :author="author" :npub="npub" />
                     </a>
                 </span>
                 <span>
