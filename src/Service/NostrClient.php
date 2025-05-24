@@ -3,25 +3,20 @@
 namespace App\Service;
 
 use App\Entity\Article;
-use App\Entity\User;
 use App\Enum\KindsEnum;
 use App\Factory\ArticleFactory;
-use App\Repository\UserEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use swentel\nostr\Event\Event;
 use swentel\nostr\Filter\Filter;
-use swentel\nostr\Key\Key;
 use swentel\nostr\Message\EventMessage;
 use swentel\nostr\Message\RequestMessage;
 use swentel\nostr\Relay\Relay;
 use swentel\nostr\Relay\RelaySet;
 use swentel\nostr\Request\Request;
 use swentel\nostr\Subscription\Subscription;
-use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 
 class NostrClient
 {
@@ -48,6 +43,7 @@ class NostrClient
     {
         $this->defaultRelaySet = new RelaySet();
         $this->defaultRelaySet->addRelay(new Relay('wss://theforest.nostr1.com')); // public aggregator relay
+        $this->defaultRelaySet->addRelay(new Relay('wss://thecitadel.nostr1.com')); // public aggregator relay
     }
 
     /**
@@ -55,7 +51,7 @@ class NostrClient
      */
     private function createRelaySet(array $relayUrls): RelaySet
     {
-        $relaySet = new RelaySet();
+        $relaySet = $this->defaultRelaySet;
         foreach ($relayUrls as $relayUrl) {
             $relaySet->addRelay(new Relay($relayUrl));
         }
@@ -215,39 +211,45 @@ class NostrClient
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     public function getLongFormFromNaddr($slug, $relayList, $author, $kind): void
     {
-        $subscription = new Subscription();
-        $subscriptionId = $subscription->setId();
-        $filter = new Filter();
-        $filter->setKinds([$kind]);
-        $filter->setAuthors([$author]);
-        $filter->setTag('#d', [$slug]);
-        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-
-        // First try with theforest relay and any relays in $relayList
-        // Add theforest relay to the list, if not already present
-        if (!in_array('wss://theforest.nostr1.com', $relayList)) {
-            $relayList[] = 'wss://theforest.nostr1.com';
+        if (!empty($relayList)) {
+            // Filter out relays that exist in the REPUTABLE_RELAYS list
+            $relayList = array_filter($relayList, function ($relay) {
+                // in array REPUTABLE_RELAYS
+                return in_array($relay, self::REPUTABLE_RELAYS) && str_starts_with($relay, 'wss:') && !str_contains($relay, 'localhost');
+            });
+            $relaySet = $this->createRelaySet($relayList);
         }
-        $forestRelaySet = $this->createRelaySet($relayList);
-        $response = null;
         $hasEvents = false;
 
         try {
-            $request = new Request($forestRelaySet, $requestMessage);
-            $response = $request->send();
+            // Create request using the helper method for forest relay set
+            $request = $this->createNostrRequest(
+                kinds: [$kind],
+                filters: [
+                    'authors' => [$author],
+                    'tag' => ['#d', [$slug]]
+                ],
+                relaySet: $relaySet ?? $this->defaultRelaySet
+            );
 
-            // Check if we got any events
-            foreach ($response as $relayRes) {
-                $filtered = array_filter($relayRes, function ($item) {
-                    return $item->type === 'EVENT';
-                });
-                if (count($filtered) > 0) {
-                    $this->saveLongFormContent($filtered);
-                    $hasEvents = true;
-                    break;
-                }
+            // Process the response
+            $events = $this->processResponse($request->send(), function($event) {
+                return $event;
+            });
+
+            if (!empty($events)) {
+                $this->saveLongFormContent(array_map(function($event) {
+                    $wrapper = new \stdClass();
+                    $wrapper->type = 'EVENT';
+                    $wrapper->event = $event;
+                    return $wrapper;
+                }, $events));
+                $hasEvents = true;
             }
 
             // If no events found in theforest, try author's reputable relays
@@ -255,21 +257,32 @@ class NostrClient
                 $topAuthorRelays = $this->getTopReputableRelaysForAuthor($author);
                 $authorRelaySet = $this->createRelaySet($topAuthorRelays);
 
-                $this->logger->info('No results from theforest, trying author relays', [
+                $this->logger->info('No results, trying author relays', [
                     'relays' => $topAuthorRelays
                 ]);
 
-                $request = new Request($authorRelaySet, $requestMessage);
-                $response = $request->send();
+                // Create request using the helper method for author relay set
+                $request = $this->createNostrRequest(
+                    kinds: [$kind],
+                    filters: [
+                        'authors' => [$author],
+                        'tag' => ['#d', [$slug]]
+                    ],
+                    relaySet: $authorRelaySet
+                );
 
-                foreach ($response as $relayRes) {
-                    $filtered = array_filter($relayRes, function ($item) {
-                        return $item->type === 'EVENT';
-                    });
-                    if (count($filtered) > 0) {
-                        $this->saveLongFormContent($filtered);
-                        break;
-                    }
+                // Process the response
+                $events = $this->processResponse($request->send(), function($event) {
+                    return $event;
+                });
+
+                if (!empty($events)) {
+                    $this->saveLongFormContent(array_map(function($event) {
+                        $wrapper = new \stdClass();
+                        $wrapper->type = 'EVENT';
+                        $wrapper->event = $event;
+                        return $wrapper;
+                    }, $events));
                 }
             }
         } catch (\Exception $e) {
@@ -277,17 +290,7 @@ class NostrClient
             $this->logger->error('Error querying relays, falling back to defaults', [
                 'error' => $e->getMessage()
             ]);
-            $request = new Request($this->defaultRelaySet, $requestMessage);
-            $response = $request->send();
-
-            foreach ($response as $relayRes) {
-                $filtered = array_filter($relayRes, function ($item) {
-                    return $item->type === 'EVENT';
-                });
-                if (count($filtered) > 0) {
-                    $this->saveLongFormContent($filtered);
-                }
-            }
+            throw new \Exception('Error querying relays', 0, $e);
         }
     }
 
@@ -296,17 +299,7 @@ class NostrClient
         foreach ($filtered as $wrapper) {
             $article = $this->articleFactory->createFromLongFormContentEvent($wrapper->event);
             // check if event with same eventId already in DB
-            $saved = $this->entityManager->getRepository(Article::class)->findOneBy(['eventId' => $article->getEventId()]);
-            if (!$saved) {
-                try {
-                    $this->logger->info('Saving article', ['article' => $article]);
-                    $this->entityManager->persist($article);
-                    $this->entityManager->flush();
-                } catch (\Exception $e) {
-                    $this->logger->error($e->getMessage());
-                    $this->managerRegistry->resetManager();
-                }
-            }
+            $this->saveEachArticleToTheDatabase($article);
         }
     }
 
@@ -315,13 +308,10 @@ class NostrClient
      */
     public function getNpubRelays($npub): array
     {
-        // Convert npub to hex
-        $keys = new Key();
-        $pubkey = $keys->convertToHex($npub);
         // Get relays
         $request = $this->createNostrRequest(
             kinds: [KindsEnum::RELAY_LIST],
-            filters: ['authors' => [$pubkey]],
+            filters: ['authors' => [$npub]],
             relaySet: $this->defaultRelaySet
         );
         $response = $this->processResponse($request->send(), function($received) {
@@ -387,43 +377,32 @@ class NostrClient
     /**
      * @throws \Exception
      */
-    public function getLongFormContentForPubkey(string $pubkey): array
+    public function getLongFormContentForPubkey(string $ident): array
     {
-        $articles = [];
+        // Add user relays to the default set
+        $authorRelays = $this->getTopReputableRelaysForAuthor($ident);
+        // Create a RelaySet from the author's relays
         $relaySet = $this->defaultRelaySet;
-
-        // look for last months long-form notes
-        $subscription = new Subscription();
-        $subscriptionId = $subscription->setId();
-        $filter = new Filter();
-        $filter->setKinds([KindsEnum::LONGFORM]);
-        $filter->setLimit(10);
-        $filter->setAuthors([$pubkey]);
-        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-        $request = new Request($relaySet, $requestMessage);
-
-        $response = $request->send();
-
-        // response is an array of arrays
-        foreach ($response as $value) {
-            foreach ($value as $item) {
-                if (is_array($item)) continue;
-                switch ($item->type) {
-                    case 'EVENT':
-                        $article = $this->articleFactory->createFromLongFormContentEvent($item->event);
-                        $articles[] = $article;
-                        break;
-                    case 'AUTH':
-                        // throw new UnauthorizedHttpException('', 'Relay requires authentication');
-                    case 'ERROR':
-                    case 'NOTICE':
-                        // throw new \Exception('An error occurred');
-                    default:
-                        // nothing to do here
-                }
-            }
+        if (!empty($authorRelays)) {
+            $relaySet = $this->createRelaySet($authorRelays);
         }
-        return $articles;
+
+        // Create request using the helper method
+        $request = $this->createNostrRequest(
+            kinds: [KindsEnum::LONGFORM],
+            filters: [
+                'authors' => [$ident],
+                'limit' => 10
+            ],
+            relaySet: $relaySet
+        );
+
+        // Process the response using the helper method
+        return $this->processResponse($request->send(), function($event) {
+            $article = $this->articleFactory->createFromLongFormContentEvent($event);
+            // Save each article to the database
+            $this->saveEachArticleToTheDatabase($article);
+        });
     }
 
     public function getArticles(array $slugs): array
@@ -495,6 +474,108 @@ class NostrClient
         return $articles;
     }
 
+    /**
+     * Fetch articles by coordinates (kind:author:slug)
+     * Returns a map of coordinate => event for successful fetches
+     *
+     * @param array $coordinates Array of coordinates in format kind:author:slug
+     * @return array Map of coordinate => event
+     * @throws \Exception
+     */
+    public function getArticlesByCoordinates(array $coordinates): array
+    {
+        $articlesMap = [];
+
+        foreach ($coordinates as $coordinate) {
+            $parts = explode(':', $coordinate);
+
+            if (count($parts) !== 3) {
+                $this->logger->warning('Invalid coordinate format', ['coordinate' => $coordinate]);
+                continue;
+            }
+
+            $kind = (int)$parts[0];
+            $pubkey = $parts[1];
+            $slug = $parts[2];
+
+            // Try to get relays associated with the author first
+            $relayList = [];
+            try {
+                // Get relays where the author publishes
+                $authorRelays = $this->getTopReputableRelaysForAuthor($pubkey);
+                if (!empty($authorRelays)) {
+                    $relayList = $authorRelays;
+                }
+            } catch (\Exception $e) {
+                $this->logger->warning('Failed to get author relays', [
+                    'pubkey' => $pubkey,
+                    'error' => $e->getMessage()
+                ]);
+                // Continue with default relays
+            }
+
+            // If no author relays found, add default relay
+            if (empty($relayList)) {
+                $relayList = [self::REPUTABLE_RELAYS[0]];
+            }
+
+            // Ensure we use a RelaySet
+            $relaySet = $this->createRelaySet($relayList);
+
+            // Create subscription and filter
+            $subscription = new Subscription();
+            $subscriptionId = $subscription->setId();
+            $filter = new Filter();
+            $filter->setKinds([$kind]);
+            $filter->setAuthors([$pubkey]);
+            $filter->setTag('#d', [$slug]);
+            $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+
+            try {
+                $request = new Request($relaySet, $requestMessage);
+                $response = $request->send();
+                $found = false;
+
+                // Check responses from each relay
+                foreach ($response as $value) {
+                    foreach ($value as $item) {
+                        if ($item->type === 'EVENT') {
+                            $articlesMap[$coordinate] = $item->event;
+                            $found = true;
+                            break 2; // Found what we need, exit both loops
+                        }
+                    }
+                }
+
+                // If still not found, try with default relay set as fallback
+                if (!$found) {
+                    $this->logger->info('Article not found in author relays, trying default relays', [
+                        'coordinate' => $coordinate
+                    ]);
+
+                    $request = new Request($this->defaultRelaySet, $requestMessage);
+                    $response = $request->send();
+
+                    foreach ($response as $value) {
+                        foreach ($value as $item) {
+                            if ($item->type === 'EVENT') {
+                                $articlesMap[$coordinate] = $item->event;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                $this->logger->error('Error fetching article', [
+                    'coordinate' => $coordinate,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        return $articlesMap;
+    }
+
     private function createNostrRequest(array $kinds, array $filters = [], ?RelaySet $relaySet = null): Request
     {
         $subscription = new Subscription();
@@ -504,7 +585,13 @@ class NostrClient
         foreach ($filters as $key => $value) {
             $method = 'set' . ucfirst($key);
             if (method_exists($filter, $method)) {
-                $filter->$method($value);
+                // If it's tags, we need to handle it differently
+                if ($key === 'tag') {
+                   $filter->setTag($value[0], $value[1]);
+                } else {
+                    // Call the method with the value
+                    $filter->$method($value);
+                }
             }
         }
 
@@ -516,10 +603,12 @@ class NostrClient
     {
         $results = [];
         foreach ($response as $relayRes) {
+            $this->logger->warning('Response from relay', $response);
             foreach ($relayRes as $item) {
                 try {
                     switch ($item->type) {
                         case 'EVENT':
+                            $this->logger->info('Processing event', ['event' => $item->event]);
                             $result = $eventHandler($item->event);
                             if ($result !== null) {
                                 $results[] = $result;
@@ -542,5 +631,24 @@ class NostrClient
             }
         }
         return $results;
+    }
+
+    /**
+     * @param Article $article
+     * @return void
+     */
+    public function saveEachArticleToTheDatabase(Article $article): void
+    {
+        $saved = $this->entityManager->getRepository(Article::class)->findOneBy(['eventId' => $article->getEventId()]);
+        if (!$saved) {
+            try {
+                $this->logger->info('Saving article', ['article' => $article]);
+                $this->entityManager->persist($article);
+                $this->entityManager->flush();
+            } catch (\Exception $e) {
+                $this->logger->error($e->getMessage());
+                $this->managerRegistry->resetManager();
+            }
+        }
     }
 }

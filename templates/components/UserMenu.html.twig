@@ -2,8 +2,8 @@
     {% if app.user %}
         <div class="notice info">
             <twig:Molecules:UserFromNpub ident="{{ app.user.npub }}" />
+            {% if is_granted('ROLE_ADMIN') %}<span class="badge">Admin</span>{% endif %}
         </div>
-{#        <p>Hello, {{ app.user.name }}</p>#}
         {% if is_granted('ROLE_ADMIN') %}
 {#        <ul>#}
 {#            <li>#}
@@ -12,9 +12,6 @@
 {#        </ul>#}
         {% endif %}
         <ul class="user-nav">
-            <li>
-                <a href="{{ path('author-profile', {npub: app.user.npub }) }}">Profile</a>
-            </li>
 {#            <li>#}
 {#                <a href="{{ path('editor-create') }}">Write an article</a>#}
 {#            </li>#}

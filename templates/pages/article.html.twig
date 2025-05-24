@@ -12,6 +12,14 @@
 {% endblock %}
 
 {% block body %}
+
+
+    {% if is_granted('ROLE_ADMIN') %}
+    <button class="btn btn-primary" onclick="navigator.clipboard.writeText('30023:{{ article.pubkey }}:{{ article.slug }}')">
+        Copy coordinates
+    </button>
+    {% endif %}
+
     <div class="card">
         <div class="card-header">
             <h1 class="card-title">{{ article.title }}</h1>
@@ -66,9 +74,6 @@
 {% endblock %}
 
 {% block aside %}
-    {% if is_granted('ROLE_ADMIN') %}
-        <p>30032:{{ article.pubkey }}:{{ article.slug }}</p>
-    {% endif %}
 {#    <h1>Suggestions</h1>#}
 {#    <twig:Organisms:CardList :list="suggestions" />#}
 {% endblock %}

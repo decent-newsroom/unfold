@@ -24,6 +24,7 @@
 nav {
     width: 21vw;
     min-width: 150px;
+    max-width: 280px;
     flex-shrink: 0;
     padding: 1em;
     overflow-y: auto; /* Ensure the menu is scrollable if content is too long */
@@ -107,6 +108,7 @@ main {
     top: 150px;
     width: 21vw;
     min-width: 150px;
+    max-width: 280px;
 }
 
 .user-nav {

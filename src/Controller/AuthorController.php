@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\NostrClient;
 use App\Service\RedisCacheService;
 use Elastica\Query\Terms;
 use FOS\ElasticaBundle\Finder\FinderInterface;
@@ -20,18 +21,21 @@ class AuthorController extends AbstractController
      * @throws InvalidArgumentException
      */
     #[Route('/p/{npub}', name: 'author-profile', requirements: ['npub' => '^npub1.*'])]
-    public function index($npub, RedisCacheService $redisCacheService, FinderInterface $finder): Response
+    public function index($npub, NostrClient $nostrClient, RedisCacheService $redisCacheService, FinderInterface $finder): Response
     {
         $keys = new Key();
         $pubkey = $keys->convertToHex($npub);
 
         $author = $redisCacheService->getMetadata($npub);
-        $relays = $redisCacheService->getRelays($npub);
-
-        // Look for articles in index, assume indexing is done regularly
-        // TODO give users an option to reindex
+        // Retrieve long-form content for the author
+        try {
+            $list = $nostrClient->getLongFormContentForPubkey($npub);
+        } catch (\Exception $e) {
+            $list = [];
+        }
+        // Also look for articles in the Elastica index
         $query = new Terms('pubkey', [$pubkey]);
-        $list = $finder->find($query, 25);
+        $list = array_merge($list, $finder->find($query, 25));
 
         // deduplicate by slugs
         $articles = [];
@@ -44,8 +48,7 @@ class AuthorController extends AbstractController
         return $this->render('Pages/author.html.twig', [
             'author' => $author,
             'npub' => $npub,
-            'articles' => $articles,
-            'relays' => $relays
+            'articles' => $articles
         ]);
     }
 

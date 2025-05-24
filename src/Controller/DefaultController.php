@@ -11,6 +11,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\CacheInterface;
+use App\Service\NostrClient;
+use App\Factory\ArticleFactory;
+use Psr\Log\LoggerInterface;
 
 class DefaultController extends AbstractController
 {
@@ -47,7 +50,10 @@ class DefaultController extends AbstractController
      */
     #[Route('/cat/{slug}', name: 'magazine-category')]
     public function magCategory($slug, CacheInterface $redisCache,
-                                FinderInterface $finder): Response
+                                FinderInterface $finder,
+                                NostrClient $nostrClient,
+                                ArticleFactory $articleFactory,
+                                LoggerInterface $logger): Response
     {
         $catIndex = $redisCache->get('magazine-' . $slug, function (){
             throw new \Exception('Not found');
@@ -55,6 +61,7 @@ class DefaultController extends AbstractController
 
         $list = [];
         $slugs = [];
+        $coordinates = []; // Store full coordinates (kind:author:slug)
         $category = [];
 
         foreach ($catIndex->getTags() as $tag) {
@@ -68,12 +75,12 @@ class DefaultController extends AbstractController
                 $parts = explode(':', $tag[1]);
                 if (count($parts) === 3) {
                     $slugs[] = $parts[2];
+                    $coordinates[] = $tag[1]; // Store the full coordinate
                 }
             }
         }
 
         if (!empty($slugs)) {
-
             $query = new Terms('slug', array_values($slugs));
             $articles = $finder->find($query);
 
@@ -88,16 +95,44 @@ class DefaultController extends AbstractController
                 }
             }
 
-            if (!empty($res)) {
-                foreach ($res as $result) {
-                    if (!isset($slugMap[$result->getSlug()])) {
-                        $slugMap[$result->getSlug()] = $result;
-                    }
+            // Find missing articles based on coordinates
+            $missingCoordinates = [];
+            $missingIndexes = [];
+
+            for ($i = 0; $i < count($slugs); $i++) {
+                $slug = $slugs[$i];
+                if (!isset($slugMap[$slug])) {
+                    $missingCoordinates[] = $coordinates[$i];
+                    $missingIndexes[$coordinates[$i]] = $i; // Track original position
                 }
             }
 
+            // If we have missing articles, fetch them from nostr
+            if (!empty($missingCoordinates)) {
+                $logger->info('Fetching missing articles', [
+                    'missing' => $missingCoordinates
+                ]);
 
-            // Reorder by the original $slugs
+                try {
+                    $nostrArticles = $nostrClient->getArticlesByCoordinates($missingCoordinates);
+
+                    foreach ($nostrArticles as $coordinate => $event) {
+                        $parts = explode(':', $coordinate);
+                        if (count($parts) === 3) {
+                            $article = $articleFactory->createFromLongFormContentEvent($event);
+
+                            // Add to the slugMap
+                            $slugMap[$article->getSlug()] = $article;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $logger->error('Error fetching missing articles', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            // Reorder by the original $slugs to maintain order
             $results = [];
             foreach ($slugs as $slug) {
                 if (isset($slugMap[$slug])) {

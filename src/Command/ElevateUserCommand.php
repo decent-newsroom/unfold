@@ -38,6 +38,7 @@ class ElevateUserCommand extends Command
             return Command::INVALID;
         }
 
+        /** @var User|null $user */
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['npub' => $npub]);
         if (!$user) {
             return Command::FAILURE;
@@ -46,6 +47,7 @@ class ElevateUserCommand extends Command
         $user->addRole($role);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+        $output->writeln(sprintf('User %s elevated to role %s', $npub, $role));
 
         return Command::SUCCESS;
     }
