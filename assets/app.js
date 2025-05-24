@@ -13,6 +13,7 @@ import './styles/button.css';
 import './styles/card.css';
 import './styles/article.css';
 import './styles/form.css';
+import './styles/notice.css';
 import './styles/spinner.css';
 import './styles/a2hs.css';
 

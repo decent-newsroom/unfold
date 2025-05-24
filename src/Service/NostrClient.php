@@ -42,9 +42,7 @@ class NostrClient
 
     public function __construct(private readonly EntityManagerInterface $entityManager,
                                 private readonly ManagerRegistry $managerRegistry,
-                                private readonly UserEntityRepository $userEntityRepository,
                                 private readonly ArticleFactory $articleFactory,
-                                private readonly SerializerInterface $serializer,
                                 private readonly TokenStorageInterface $tokenStorage,
                                 private readonly LoggerInterface $logger)
     {
@@ -102,48 +100,21 @@ class NostrClient
         return $reputableAuthorRelays;
     }
 
-    public function getLoginData($npub)
-    {
-        $subscription = new Subscription();
-        $subscriptionId = $subscription->setId();
-        $filter = new Filter();
-        $filter->setKinds([KindsEnum::METADATA, KindsEnum::RELAY_LIST]);
-        $filter->setAuthors([$npub]);
-        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-        $request = new Request($this->defaultRelaySet, $requestMessage);
-
-        $response = $request->send();
-        $this->logger->info('Login data.', ['response' => $response]);
-
-        // response is an n-dimensional array, where n is the number of relays in the set
-        // check that response has events in the results
-        foreach ($response as $relayRes) {
-            $filtered = array_filter($relayRes, function ($item) {
-                return $item->type === 'EVENT';
-            });
-            if (count($filtered) > 0) {
-                return $filtered;
-            }
-        }
-
-        return null;
-    }
-
     public function getNpubMetadata($npub): \stdClass
     {
         $this->logger->info('Getting metadata for npub', ['npub' => $npub]);
-        // Convert npub to hex
-        $keys = new Key();
-        $pubkey = $keys->convertToHex($npub);
+        // Npubs are converted to hex for the request down the line
         $request = $this->createNostrRequest(
             kinds: [KindsEnum::METADATA],
-            filters: ['authors' => [$pubkey]],
-            relaySet: $this->defaultRelaySet
+            filters: ['authors' => [$npub]]
         );
 
         $events = $this->processResponse($request->send(), function($received) {
+            $this->logger->info('Getting metadata for npub', ['item' => $received]);
             return $received;
         });
+
+        $this->logger->info('Getting metadata for npub', ['response' => $events]);
 
         if (empty($events)) {
             $meta = new \stdClass();
@@ -317,69 +288,6 @@ class NostrClient
                     $this->saveLongFormContent($filtered);
                 }
             }
-        }
-    }
-
-    /**
-     * User metadata
-     * NIP-01
-     * @throws \Exception
-     */
-    public function getMetadata(array $npubs): void
-    {
-        $subscription = new Subscription();
-        $subscriptionId = $subscription->setId();
-        $filter = new Filter();
-        $filter->setKinds([KindsEnum::METADATA]);
-        $filter->setAuthors($npubs);
-        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
-        // TODO make relays configurable
-        $relays = new RelaySet();
-        $relays->addRelay(new Relay('wss://purplepag.es')); // default metadata aggregator
-        // $relays->addRelay(new Relay('wss://nos.lol')); // default metadata aggregator
-
-        $request = new Request($relays, $requestMessage);
-
-        $response = $request->send();
-        // response is an array of arrays
-        foreach ($response as $value) {
-            foreach ($value as $item) {
-                switch ($item->type) {
-                    case 'EVENT':
-                        $this->saveMetadata($item->event);
-                        break;
-                    case 'AUTH':
-                        throw new UnauthorizedHttpException('', 'Relay requires authentication');
-                    case 'ERROR':
-                    case 'NOTICE':
-                        throw new \Exception('An error occurred');
-                    default:
-                        // nothing to do here
-                }
-            }
-        }
-    }
-
-    /**
-     * Save user metadata
-     */
-    private function saveMetadata($metadata): void
-    {
-        try {
-            $user = $this->serializer->deserialize($metadata->content, User::class, 'json');
-            $user->setNpub($metadata->pubkey);
-        } catch (\Exception $e) {
-            $this->logger->error('Deserialization of user data failed.', ['exception' => $e]);
-            return;
-        }
-
-        try {
-            $this->logger->info('Saving user', ['user' => $user]);
-            $this->userEntityRepository->findOrCreateByUniqueField($user);
-            $this->entityManager->flush();
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
-            $this->managerRegistry->resetManager();
         }
     }
 

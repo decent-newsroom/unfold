@@ -1,6 +1,9 @@
 <div class="user-menu" {{ attributes.defaults(stimulus_controller('login')) }}>
     {% if app.user %}
-        <p>Hello, {{ app.user.name }}</p>
+        <div class="notice info">
+            <twig:Molecules:UserFromNpub ident="{{ app.user.npub }}" />
+        </div>
+{#        <p>Hello, {{ app.user.name }}</p>#}
         {% if is_granted('ROLE_ADMIN') %}
 {#        <ul>#}
 {#            <li>#}
@@ -8,7 +11,7 @@
 {#            </li>#}
 {#        </ul>#}
         {% endif %}
-        <ul>
+        <ul class="user-nav">
             <li>
                 <a href="{{ path('author-profile', {npub: app.user.npub }) }}">Profile</a>
             </li>
@@ -29,9 +32,12 @@
             </li>
         </ul>
     {% else %}
+        <div class="notice info">
+            <p>Log in to access search.</p>
+        </div>
         <twig:Atoms:Button {{ ...stimulus_action('login', 'loginAct') }}>{{ 'heading.logIn'|trans }}</twig:Atoms:Button>
     {% endif %}
-    <div style="text-align: center">
+    <div>
         <div class="spinner" data-loading>
             <div class="lds-dual-ring"></div>
         </div>

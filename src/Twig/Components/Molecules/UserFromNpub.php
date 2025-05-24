@@ -17,11 +17,16 @@ final class UserFromNpub
     {
     }
 
-    public function mount(string $pubkey): void
+    public function mount(string $ident): void
     {
-        $keys = new Key();
-        $this->pubkey = $pubkey;
-        $this->npub = $keys->convertPublicKeyToBech32($pubkey);
+        // if npub doesn't start with 'npub' then assume it's a hex pubkey
+        if (!str_starts_with($ident, 'npub')) {
+            $keys = new Key();
+            $this->pubkey = $ident;
+            $this->npub = $keys->convertPublicKeyToBech32($ident);
+        } else {
+            $this->npub = $ident;
+        }
         $this->user = $this->redisCacheService->getMetadata($this->npub);
     }
 }

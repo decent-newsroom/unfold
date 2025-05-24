@@ -48,7 +48,7 @@ readonly class UserDTOProvider implements UserProviderInterface
      */
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $this->logger->info('Load user by identifier.');
+        $this->logger->info('Load user by identifier.', ['identifier' => $identifier]);
         // Get or create user
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['npub' => $identifier]);
 

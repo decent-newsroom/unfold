@@ -25,7 +25,6 @@ readonly class RedisCacheService
     public function getMetadata(string $npub): \stdClass
     {
         $cacheKey = '0_' . $npub;
-
         try {
             return $this->redisCache->get($cacheKey, function (ItemInterface $item) use ($npub) {
                 $item->expiresAfter(3600); // 1 hour, adjust as needed

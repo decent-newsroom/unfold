@@ -1,0 +1,15 @@
+.notice {
+    padding: 10px; /* Padding around the content */
+    border-radius: 5px; /* Rounded corners */
+    margin: 10px 0; /* Margin above and below the notice */
+}
+
+.notice p {
+    margin: 0; /* Remove default paragraph margin */
+}
+
+.notice.info {
+    background-color: rgba(95, 115, 85, 0.15); /* Light version of --color-primary */
+    border-left: 4px solid var(--color-primary); /* Solid border using primary color */
+    color: var(--color-text); /* Use theme text color for better contrast */
+}

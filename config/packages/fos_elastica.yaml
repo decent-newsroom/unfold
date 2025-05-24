@@ -8,12 +8,34 @@ fos_elastica:
     indexes:
         # create the index by running php bin/console fos:elastica:populate
         articles:
+            settings:
+                index:
+                    # Increase refresh interval for better write performance
+                    refresh_interval: "5s"
+                    # Optimize indexing
+                    number_of_shards: 1
+                    number_of_replicas: 0
+                analysis:
+                    analyzer:
+                        custom_analyzer:
+                            type: custom
+                            tokenizer: standard
+                            filter: [ lowercase, snowball, asciifolding ]
             indexable_callback: [ 'App\Util\IndexableArticleChecker', 'isIndexable' ]
             properties:
-                createdAt: ~
-                title: ~
-                summary: ~
-                content: ~
+                createdAt:
+                    type: keyword
+                title:
+                    type: text
+                    analyzer: custom_analyzer
+                content:
+                    type: text
+                    analyzer: custom_analyzer
+                summary:
+                    type: text
+                    analyzer: custom_analyzer
+                tags:
+                    type: keyword
                 slug:
                     type: keyword
                 pubkey:

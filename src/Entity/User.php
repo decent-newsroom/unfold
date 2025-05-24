@@ -15,8 +15,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Table(name: "app_user")]
 class User implements UserInterface, EquatableInterface
 {
-    private static array $sessionData = [];
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -88,22 +86,27 @@ class User implements UserInterface, EquatableInterface
 
     public function setMetadata(?object $metadata): void
     {
-        self::$sessionData[$this->getNpub()]['metadata'] = $metadata;
+        $this->metadata = $metadata;
     }
 
     public function getMetadata(): ?object
     {
-        return self::$sessionData[$this->getNpub()]['metadata'] ?? null;
+        return $this->metadata;
     }
 
     public function setRelays(?array $relays): void
     {
-        self::$sessionData[$this->getNpub()]['relays'] = $relays;
+        $this->relays = $relays;
     }
 
     public function getRelays(): ?array
     {
-        return self::$sessionData[$this->getNpub()]['relays'] ?? null;
+        return $this->relays;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->getMetadata()->name ?? $this->getUserIdentifier();
     }
 
     public function isEqualTo(UserInterface $user): bool

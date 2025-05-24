@@ -34,9 +34,7 @@ final class GetCreditsComponent
         }
 
         // Dispatch event to notify parent
-        $this->emit('creditsAdded', [
-            'credits' => 5,
-        ]);
+        $this->emit('creditsAdded');
     }
 }
 
