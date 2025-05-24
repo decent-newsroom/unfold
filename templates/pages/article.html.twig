@@ -58,19 +58,23 @@
             {{ content|raw }}
         </div>
 
+        {% if article.topics|length > 0 %}
         <hr class="divider" />
         <div class="tags">
             {% for tag in article.topics %}
                 <span class="tag">{{ tag }}</span>
             {% endfor %}
         </div>
+        {% endif %}
 
     </div>
 
-{#    <pre>#}
+    <hr class="divider" />
+
+    {#    <pre>#}
 {#        {{ article.content }}#}
 {#    </pre>#}
-    <twig:Organisms:Comments current="30032:{{ article.pubkey }}:{{ article.slug }}"></twig:Organisms:Comments>
+    <twig:Organisms:Comments current="30023:{{ article.pubkey }}:{{ article.slug }}"></twig:Organisms:Comments>
 {% endblock %}
 
 {% block aside %}

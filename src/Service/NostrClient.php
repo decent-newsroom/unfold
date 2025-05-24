@@ -336,42 +336,89 @@ class NostrClient
     }
 
     /**
+     * Get comments for a specific coordinate
+     *
+     * @param string $coordinate The event coordinate (kind:pubkey:identifier)
+     * @return array Array of comment events
      * @throws \Exception
      */
-    public function getComments($coordinate): array
+    public function getComments(string $coordinate): array
     {
-        $list = [];
+        $this->logger->info('Getting comments for coordinate', ['coordinate' => $coordinate]);
+
+        // Get author from coordinate, then relays
         $parts = explode(':', $coordinate);
+        if (count($parts) !== 3) {
+            throw new \InvalidArgumentException('Invalid coordinate format, expected kind:pubkey:identifier');
+        }
+        $kind = (int)$parts[0];
+        $pubkey = $parts[1];
+        $identifier = $parts[2];
+        // Get relays for the author
+        $authorRelays = $this->getTopReputableRelaysForAuthor($pubkey);
+        // Turn into a relaySet
+        $relaySet = $this->createRelaySet($authorRelays);
 
-        $subscription = new Subscription();
-        $subscriptionId = $subscription->setId();
-        $filter = new Filter();
-        $filter->setKinds([KindsEnum::COMMENTS, KindsEnum::TEXT_NOTE]);
-        $filter->setTag('#a', [$coordinate]);
-        $requestMessage = new RequestMessage($subscriptionId, [$filter]);
+        // Create request using the helper method
+        $request = $this->createNostrRequest(
+            kinds: [KindsEnum::COMMENTS->value, KindsEnum::TEXT_NOTE->value],
+            filters: ['tag' => ['#a', [$coordinate], '#p', [$pubkey]]],
+            relaySet: $relaySet
+        );
 
-        $request = new Request($this->defaultRelaySet, $requestMessage);
-
-        $response = $request->send();
-        // response is an array of arrays
-        foreach ($response as $value) {
-            foreach ($value as $item) {
-                switch ($item->type) {
-                    case 'EVENT':
-                        dump($item);
-                        $list[] = $item;
-                        break;
-                    case 'AUTH':
-                        // throw new UnauthorizedHttpException('', 'Relay requires authentication');
-                    case 'ERROR':
-                    case 'NOTICE':
-                        // throw new \Exception('An error occurred');
-                    default:
-                        // nothing to do here
+        // Process the response and deduplicate by eventId
+        $uniqueEvents = [];
+        $this->processResponse($request->send(), function($event) use (&$uniqueEvents, $pubkey) {
+            $this->logger->debug('Received comment event', ['event_id' => $event->id]);
+            // If event has p tag with the pubkey, it's a comment
+            // Loop tags, look for 'p' tag
+            foreach ($event->tags as $tag) {
+                if ($tag[0] === 'p' && $tag[1] === $pubkey) {
+                    $uniqueEvents[$event->id] = $event;
+                    break;
                 }
             }
+            return null; // We'll handle the collection ourselves
+        });
+
+        return array_values($uniqueEvents);
+    }
+
+    /**
+     * Get zap events for a specific event
+     *
+     * @param string $coordinate The event coordinate (kind:pubkey:identifier)
+     * @return array Array of zap events
+     * @throws \Exception
+     */
+    public function getZapsForEvent(string $coordinate): array
+    {
+        $this->logger->info('Getting zaps for coordinate', ['coordinate' => $coordinate]);
+
+        // Parse the coordinate to get pubkey
+        $parts = explode(':', $coordinate);
+        if (count($parts) !== 3) {
+            throw new \InvalidArgumentException('Invalid coordinate format, expected kind:pubkey:identifier');
         }
-        return $list;
+        $pubkey = $parts[1];
+
+        // Get author's relays for better chances of finding zaps
+        $authorRelays = $this->getTopReputableRelaysForAuthor($pubkey);
+        $relaySet = $this->createRelaySet($authorRelays);
+
+        // Create request using the helper method
+        // Zaps are kind 9735
+        $request = $this->createNostrRequest(
+            kinds: [KindsEnum::ZAP],
+            filters: ['tag' => ['#a', [$coordinate]]],
+            relaySet: $relaySet
+        );
+
+        // Process the response
+        return $this->processResponse($request->send(), function($event) {
+            $this->logger->debug('Received zap event', ['event_id' => $event->id]);
+            return $event;
+        });
     }
 
     /**

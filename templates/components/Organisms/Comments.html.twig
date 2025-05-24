@@ -1,7 +1,13 @@
 <div class="comments">
     {% for item in list %}
-        <div class="comment">
-            <span>{{ item.content }}</span>
+        <div class="card comment">
+            <div class="metadata">
+                <p><twig:Molecules:UserFromNpub ident="{{ item.pubkey }}" /></p>
+                <small>{{ item.created_at|date('F j Y') }}</small>
+            </div>
+            <div class="card-body">
+                <p>{{ item.content }}</p>
+            </div>
         </div>
     {% endfor %}
 </div>

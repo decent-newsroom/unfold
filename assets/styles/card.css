@@ -47,3 +47,20 @@ h2.card-title {
     object-fit: cover;
 }
 
+.card.comment {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-light);
+    padding: 10px;
+}
+
+.card.comment .metadata {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card.comment .metadata p {
+    margin: 0;
+    padding: 0;
+}

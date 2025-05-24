@@ -125,7 +125,7 @@ class ArticleController  extends AbstractController
         $author = $redisCacheService->getMetadata($npub);
 
 
-        return $this->render('Pages/article.html.twig', [
+        return $this->render('pages/article.html.twig', [
             'article' => $article,
             'author' => $author,
             'npub' => $npub,

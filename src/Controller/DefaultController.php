@@ -60,10 +60,10 @@ class DefaultController extends AbstractController
         });
 
         $list = [];
-        $slugs = [];
         $coordinates = []; // Store full coordinates (kind:author:slug)
         $category = [];
 
+        // Extract category metadata and article coordinates
         foreach ($catIndex->getTags() as $tag) {
             if ($tag[0] === 'title') {
                 $category['title'] = $tag[1];
@@ -72,74 +72,77 @@ class DefaultController extends AbstractController
                 $category['summary'] = $tag[1];
             }
             if ($tag[0] === 'a') {
-                $parts = explode(':', $tag[1]);
-                if (count($parts) === 3) {
-                    $slugs[] = $parts[2];
-                    $coordinates[] = $tag[1]; // Store the full coordinate
-                }
+                $coordinates[] = $tag[1]; // Store the full coordinate
             }
         }
 
-        if (!empty($slugs)) {
+        // Limit to first 9 coordinates to avoid excessive processing
+        $coordinates = array_slice($coordinates, 0, 9);
+
+        if (!empty($coordinates)) {
+            // Extract slugs for elasticsearch query
+            $slugs = array_map(function($coordinate) {
+                $parts = explode(':', $coordinate);
+                return count($parts) === 3 ? $parts[2] : '';
+            }, $coordinates);
+            $slugs = array_filter($slugs); // Remove empty values
+
+            // Try to fetch articles from elasticsearch first
             $query = new Terms('slug', array_values($slugs));
             $articles = $finder->find($query);
 
             // Create a map of slug => item to remove duplicates
             $slugMap = [];
-
             foreach ($articles as $item) {
                 $slug = $item->getSlug();
-
-                if ($slug !== '' && !isset($slugMap[$slug])) {
+                if ($slug !== '') {
                     $slugMap[$slug] = $item;
                 }
             }
 
-            // Find missing articles based on coordinates
+            // Find missing coordinates
             $missingCoordinates = [];
-            $missingIndexes = [];
-
-            for ($i = 0; $i < count($slugs); $i++) {
-                $slug = $slugs[$i];
-                if (!isset($slugMap[$slug])) {
-                    $missingCoordinates[] = $coordinates[$i];
-                    $missingIndexes[$coordinates[$i]] = $i; // Track original position
+            foreach ($coordinates as $coordinate) {
+                $parts = explode(':', $coordinate);
+                if (count($parts) === 3 && !isset($slugMap[$parts[2]])) {
+                    $missingCoordinates[] = $coordinate;
                 }
             }
 
-            // If we have missing articles, fetch them from nostr
+            // If we have missing articles, fetch them directly using NostrClient's getArticlesByCoordinates
             if (!empty($missingCoordinates)) {
-                $logger->info('Fetching missing articles', [
+
+                $logger->info('There were missing articles', [
                     'missing' => $missingCoordinates
                 ]);
 
-                try {
-                    $nostrArticles = $nostrClient->getArticlesByCoordinates($missingCoordinates);
-
-                    foreach ($nostrArticles as $coordinate => $event) {
-                        $parts = explode(':', $coordinate);
-                        if (count($parts) === 3) {
-                            $article = $articleFactory->createFromLongFormContentEvent($event);
-
-                            // Add to the slugMap
-                            $slugMap[$article->getSlug()] = $article;
-                        }
-                    }
-                } catch (\Exception $e) {
-                    $logger->error('Error fetching missing articles', [
-                        'error' => $e->getMessage()
-                    ]);
-                }
+//                try {
+//                    $nostrArticles = $nostrClient->getArticlesByCoordinates($missingCoordinates);
+//
+//                    foreach ($nostrArticles as $coordinate => $event) {
+//                        $parts = explode(':', $coordinate);
+//                        if (count($parts) === 3) {
+//                            $article = $articleFactory->createFromLongFormContentEvent($event);
+//                            // Save article to database for future queries
+//                            $nostrClient->saveEachArticleToTheDatabase($article);
+//                            // Add to the slugMap
+//                            $slugMap[$article->getSlug()] = $article;
+//                        }
+//                    }
+//                } catch (\Exception $e) {
+//                    $logger->error('Error fetching missing articles', [
+//                        'error' => $e->getMessage()
+//                    ]);
+//                }
             }
 
-            // Reorder by the original $slugs to maintain order
-            $results = [];
-            foreach ($slugs as $slug) {
-                if (isset($slugMap[$slug])) {
-                    $results[] = $slugMap[$slug];
+            // Build ordered list based on original coordinates order
+            foreach ($coordinates as $coordinate) {
+                $parts = explode(':', $coordinate);
+                if (count($parts) === 3 && isset($slugMap[$parts[2]])) {
+                    $list[] = $slugMap[$parts[2]];
                 }
             }
-            $list = array_values($results);
         }
 
         return $this->render('pages/category.html.twig', [
