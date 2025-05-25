@@ -6,6 +6,7 @@ use App\Credits\Service\CreditsManager;
 use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -40,12 +41,16 @@ final class SearchComponent
     #[LiveProp]
     public int $resultsPerPage = 12;
 
+    private const SESSION_KEY = 'last_search_results';
+    private const SESSION_QUERY_KEY = 'last_search_query';
+
     public function __construct(
         private readonly FinderInterface $finder,
         private readonly CreditsManager $creditsManager,
         private readonly TokenStorageInterface $tokenStorage,
         private readonly LoggerInterface $logger,
-        private readonly CacheInterface $cache
+        private readonly CacheInterface $cache,
+        private readonly RequestStack $requestStack
     )
     {
         $token = $this->tokenStorage->getToken();
@@ -63,6 +68,16 @@ final class SearchComponent
                 $this->credits = $this->creditsManager->resetBalance($this->npub);
             }
         }
+
+        // Restore search results from session if available and no query provided
+        if (empty($this->query)) {
+            $session = $this->requestStack->getSession();
+            if ($session->has(self::SESSION_QUERY_KEY)) {
+                $this->query = $session->get(self::SESSION_QUERY_KEY);
+                $this->results = $session->get(self::SESSION_KEY, []);
+                $this->logger->info('Restored search results from session for query: ' . $this->query);
+            }
+        }
     }
 
     /**
@@ -75,6 +90,7 @@ final class SearchComponent
 
         if (empty($this->query)) {
             $this->results = [];
+            $this->clearSearchCache();
             return;
         }
 
@@ -82,6 +98,15 @@ final class SearchComponent
             $this->credits = $this->creditsManager->getBalance($this->npub);
         } catch (InvalidArgumentException $e) {
             $this->credits = $this->creditsManager->resetBalance($this->npub);
+        }
+
+        // Check if the same query exists in session
+        $session = $this->requestStack->getSession();
+        if ($session->has(self::SESSION_QUERY_KEY) &&
+            $session->get(self::SESSION_QUERY_KEY) === $this->query) {
+            $this->results = $session->get(self::SESSION_KEY, []);
+            $this->logger->info('Using cached search results for query: ' . $this->query);
+            return;
         }
 
         if (!$this->creditsManager->canAfford($this->npub, 1)) {
@@ -152,6 +177,10 @@ final class SearchComponent
             $this->logger->info('Search results: ',  ['results' => $results]);
 
             $this->results = $results;
+
+            // Cache the search results in session
+            $this->saveSearchToSession($this->query, $this->results);
+
         } catch (\Exception $e) {
             $this->logger->error('Search error: ' . $e->getMessage());
             $this->results = [];
@@ -164,4 +193,25 @@ final class SearchComponent
         $this->credits += 5;
     }
 
+    /**
+     * Save search results to session
+     */
+    private function saveSearchToSession(string $query, array $results): void
+    {
+        $session = $this->requestStack->getSession();
+        $session->set(self::SESSION_QUERY_KEY, $query);
+        $session->set(self::SESSION_KEY, $results);
+        $this->logger->info('Saved search results to session for query: ' . $query);
+    }
+
+    /**
+     * Clear search cache from session
+     */
+    private function clearSearchCache(): void
+    {
+        $session = $this->requestStack->getSession();
+        $session->remove(self::SESSION_QUERY_KEY);
+        $session->remove(self::SESSION_KEY);
+        $this->logger->info('Cleared search cache from session');
+    }
 }

@@ -6,6 +6,7 @@
                 <input type="search"
                        placeholder="{{ 'text.search'|trans }}"
                        data-model="norender|query"
+                       value="{{ this.query }}"
                 />
                 <button type="submit"><twig:ux:icon name="iconoir:search" class="icon" /></button>
             </label>
@@ -37,3 +38,4 @@
         {% endif %}
     {% endblock %}
 </div>
+
