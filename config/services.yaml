@@ -54,11 +54,6 @@ services:
                 - '%env(REDIS_HOST)%'
             - auth:
                 - '%env(REDIS_PASSWORD)%'
-
-    App\Service\LnBitsService:
-        arguments:
-            $lnbitsUrl: '%env(LNBITS_URL)%'
-            $apiKey: '%env(LNBITS_API_KEY)%'
     
     App\Provider\ArticleProvider:
         tags:
