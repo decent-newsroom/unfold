@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "caedc29506c52d87b3e4e4217fe34eb8",
+    "content-hash": "1252f7c24acd549dc08852b1cfdd5e69",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3088,6 +3088,50 @@
                 "source": "https://github.com/nette/utils/tree/v4.0.6"
             },
             "time": "2025-03-30T21:06:30+00:00"
+        },
+        {
+            "name": "nostriphant/nip-19",
+            "version": "2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nostriphant/nip-19.git",
+                "reference": "5b362ab27e428f666f021743dddde9fecfe895c5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nostriphant/nip-19/zipball/5b362ab27e428f666f021743dddde9fecfe895c5",
+                "reference": "5b362ab27e428f666f021743dddde9fecfe895c5",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "pestphp/pest": "^2.35"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "nostriphant\\NIP19\\": "src/",
+                    "nostriphant\\NIP19Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rik Meijer",
+                    "email": "rik@nostriphant.dev"
+                }
+            ],
+            "description": "Nostr NIP-19 bech32-encoded entities in PHP",
+            "support": {
+                "issues": "https://github.com/nostriphant/nip-19/issues",
+                "source": "https://github.com/nostriphant/nip-19/tree/2.0"
+            },
+            "time": "2024-11-26T15:37:43+00:00"
         },
         {
             "name": "nyholm/dsn",

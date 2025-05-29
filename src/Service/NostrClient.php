@@ -7,6 +7,7 @@ use App\Enum\KindsEnum;
 use App\Factory\ArticleFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use nostriphant\NIP19\Data;
 use Psr\Log\LoggerInterface;
 use swentel\nostr\Event\Event;
 use swentel\nostr\Filter\Filter;
@@ -43,7 +44,8 @@ class NostrClient
     {
         $this->defaultRelaySet = new RelaySet();
         $this->defaultRelaySet->addRelay(new Relay('wss://theforest.nostr1.com')); // public aggregator relay
-        $this->defaultRelaySet->addRelay(new Relay('wss://thecitadel.nostr1.com')); // public aggregator relay
+        $this->defaultRelaySet->addRelay(new Relay('wss://relay.damus.io')); // public aggregator relay
+        $this->defaultRelaySet->addRelay(new Relay('wss://relay.primal.net')); // public aggregator relay
     }
 
     /**
@@ -220,7 +222,7 @@ class NostrClient
             // Filter out relays that exist in the REPUTABLE_RELAYS list
             $relayList = array_filter($relayList, function ($relay) {
                 // in array REPUTABLE_RELAYS
-                return in_array($relay, self::REPUTABLE_RELAYS) && str_starts_with($relay, 'wss:') && !str_contains($relay, 'localhost');
+                return str_starts_with($relay, 'wss:') && !str_contains($relay, 'localhost');
             });
             $relaySet = $this->createRelaySet($relayList);
         }
@@ -294,6 +296,113 @@ class NostrClient
         }
     }
 
+    /**
+     * Get event by its ID
+     *
+     * @param string $eventId The event ID
+     * @param array $relays Optional array of relay URLs to query
+     * @return object|null The event or null if not found
+     * @throws \Exception
+     */
+    public function getEventById(string $eventId, array $relays = []): ?object
+    {
+        $this->logger->info('Getting event by ID', ['event_id' => $eventId]);
+
+        // Use provided relays or default if empty
+        $relaySet = empty($relays) ? $this->defaultRelaySet : $this->createRelaySet($relays);
+
+        // Create request using the helper method
+        $request = $this->createNostrRequest(
+            kinds: [], // Leave empty to accept any kind
+            filters: ['ids' => [$eventId]],
+            relaySet: $relaySet
+        );
+
+        // Process the response
+        $events = $this->processResponse($request->send(), function($event) {
+            return $event;
+        });
+
+        if (empty($events)) {
+            return null;
+        }
+
+        // Return the first matching event
+        return $events[0];
+    }
+
+    /**
+     * Fetch event by naddr
+     *
+     * @param array $decoded Decoded naddr data
+     * @return object|null The event or null if not found
+     * @throws \Exception
+     */
+    public function getEventByNaddr(array $decoded): ?object
+    {
+        $this->logger->info('Getting event by naddr', ['decoded' => $decoded]);
+
+        // Extract required fields from decoded data
+        $kind = $decoded['kind'] ?? 30023; // Default to long-form content
+        $pubkey = $decoded['pubkey'] ?? '';
+        $identifier = $decoded['identifier'] ?? '';
+        $relays = $decoded['relays'] ?? [];
+
+        if (empty($pubkey) || empty($identifier)) {
+            return null;
+        }
+
+        // Try author's relays first
+        $authorRelays = empty($relays) ? $this->getTopReputableRelaysForAuthor($pubkey) : $relays;
+        $relaySet = $this->createRelaySet($authorRelays);
+
+        // Create request using the helper method
+        $request = $this->createNostrRequest(
+            kinds: [$kind],
+            filters: [
+                'authors' => [$pubkey],
+                'tag' => ['#d', [$identifier]]
+            ],
+            relaySet: $relaySet
+        );
+
+        // Process the response
+        $events = $this->processResponse($request->send(), function($event) {
+            return $event;
+        });
+
+        if (!empty($events)) {
+            return $events[0];
+        }
+
+        // Try default relays as fallback
+        $request = $this->createNostrRequest(
+            kinds: [$kind],
+            filters: [
+                'authors' => [$pubkey],
+                'tag' => ['#d', [$identifier]]
+            ]
+        );
+
+        $events = $this->processResponse($request->send(), function($event) {
+            return $event;
+        });
+
+        return !empty($events) ? $events[0] : null;
+    }
+
+    /**
+     * Fetch a note by its ID
+     *
+     * @param string $noteId The note ID
+     * @return object|null The note or null if not found
+     * @throws \Exception
+     */
+    public function getNoteById(string $noteId): ?object
+    {
+        return $this->getEventById($noteId);
+    }
+
     private function saveLongFormContent(mixed $filtered): void
     {
         foreach ($filtered as $wrapper) {
@@ -347,13 +456,13 @@ class NostrClient
         $this->logger->info('Getting comments for coordinate', ['coordinate' => $coordinate]);
 
         // Get author from coordinate, then relays
-        $parts = explode(':', $coordinate);
-        if (count($parts) !== 3) {
+        $parts = explode(':', $coordinate, 3);
+        if (count($parts) < 3) {
             throw new \InvalidArgumentException('Invalid coordinate format, expected kind:pubkey:identifier');
         }
         $kind = (int)$parts[0];
         $pubkey = $parts[1];
-        $identifier = $parts[2];
+        $identifier = end($parts);
         // Get relays for the author
         $authorRelays = $this->getTopReputableRelaysForAuthor($pubkey);
         // Turn into a relaySet
@@ -362,7 +471,7 @@ class NostrClient
         // Create request using the helper method
         $request = $this->createNostrRequest(
             kinds: [KindsEnum::COMMENTS->value, KindsEnum::TEXT_NOTE->value],
-            filters: ['tag' => ['#a', [$coordinate], '#p', [$pubkey]]],
+            filters: ['tag' => ['#A', [$coordinate]]],
             relaySet: $relaySet
         );
 
@@ -370,15 +479,8 @@ class NostrClient
         $uniqueEvents = [];
         $this->processResponse($request->send(), function($event) use (&$uniqueEvents, $pubkey) {
             $this->logger->debug('Received comment event', ['event_id' => $event->id]);
-            // If event has p tag with the pubkey, it's a comment
-            // Loop tags, look for 'p' tag
-            foreach ($event->tags as $tag) {
-                if ($tag[0] === 'p' && $tag[1] === $pubkey) {
-                    $uniqueEvents[$event->id] = $event;
-                    break;
-                }
-            }
-            return null; // We'll handle the collection ourselves
+            $uniqueEvents[$event->id] = $event;
+            return null;
         });
 
         return array_values($uniqueEvents);
@@ -649,31 +751,63 @@ class NostrClient
     private function processResponse(array $response, callable $eventHandler): array
     {
         $results = [];
-        foreach ($response as $relayRes) {
-            $this->logger->warning('Response from relay', $response);
+        foreach ($response as $relayUrl => $relayRes) {
+            // Skip if the relay response is an Exception
+            if ($relayRes instanceof \Exception) {
+                $this->logger->error('Relay error', [
+                    'relay' => $relayUrl,
+                    'error' => $relayRes->getMessage()
+                ]);
+                continue;
+            }
+
+            $this->logger->debug('Processing relay response', [
+                'relay' => $relayUrl,
+                'response' => $relayRes
+            ]);
+
             foreach ($relayRes as $item) {
                 try {
+                    if (!is_object($item)) {
+                        $this->logger->warning('Invalid response item', [
+                            'relay' => $relayUrl,
+                            'item' => $item
+                        ]);
+                        continue;
+                    }
+
                     switch ($item->type) {
                         case 'EVENT':
-                            $this->logger->info('Processing event', ['event' => $item->event]);
+                            $this->logger->debug('Processing event', [
+                                'relay' => $relayUrl,
+                                'event_id' => $item->event->id ?? 'unknown'
+                            ]);
                             $result = $eventHandler($item->event);
                             if ($result !== null) {
                                 $results[] = $result;
                             }
                             break;
                         case 'AUTH':
-                            $this->logger->warning('Relay requires authentication', ['response' => $item]);
+                            $this->logger->warning('Relay requires authentication', [
+                                'relay' => $relayUrl,
+                                'response' => $item
+                            ]);
                             break;
                         case 'ERROR':
                         case 'NOTICE':
-                            $this->logger->error('Relay error/notice', ['response' => $item]);
+                            $this->logger->warning('Relay error/notice', [
+                                'relay' => $relayUrl,
+                                'type' => $item->type,
+                                'message' => $item->message ?? 'No message'
+                            ]);
                             break;
                     }
                 } catch (\Exception $e) {
-                    $this->logger->error('Error processing event', [
-                        'exception' => $e->getMessage(),
-                        'event' => $item
+                    $this->logger->error('Error processing event from relay', [
+                        'relay' => $relayUrl,
+                        'error' => $e->getMessage()
                     ]);
+                    continue; // Skip this item but continue processing others
                 }
             }
         }
@@ -696,6 +830,50 @@ class NostrClient
                 $this->logger->error($e->getMessage());
                 $this->managerRegistry->resetManager();
             }
+        }
+    }
+
+    /**
+     * @param mixed $descriptor
+     * @return Event|null
+     */
+    public function getEventFromDescriptor(mixed $descriptor): ?\stdClass
+    {
+        // Descriptor is an stdClass with properties: type and decoded
+        if (is_object($descriptor) && isset($descriptor->type, $descriptor->decoded)) {
+            // construct a request from the descriptor to fetch the event
+            /** @var Data $ata */
+            $data = json_decode($descriptor->decoded);
+            // If id is set, search by id and kind
+            if (isset($data->id)) {
+                $request = $this->createNostrRequest(
+                    kinds: [$data->kind],
+                    filters: ['e' => [$data->id]],
+                    relaySet: $this->defaultRelaySet
+                );
+            } else {
+                $request = $this->createNostrRequest(
+                    kinds: [$data->kind],
+                    filters: ['authors' => [$data->pubkey], 'd' => [$data->identifier]],
+                    relaySet: $this->defaultRelaySet
+                );
+            }
+
+            $events = $this->processResponse($request->send(), function($received) {
+                $this->logger->info('Getting event', ['item' => $received]);
+                return $received;
+            });
+
+            if (!empty($events)) {
+                // Return the first event found
+                return $events[0];
+            } else {
+                $this->logger->warning('No events found for descriptor', ['descriptor' => $descriptor]);
+                return null;
+            }
+        } else {
+            $this->logger->error('Invalid descriptor format', ['descriptor' => $descriptor]);
+            return null;
         }
     }
 }

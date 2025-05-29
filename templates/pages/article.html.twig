@@ -74,7 +74,7 @@
     {#    <pre>#}
 {#        {{ article.content }}#}
 {#    </pre>#}
-    <twig:Organisms:Comments current="30023:{{ article.pubkey }}:{{ article.slug }}"></twig:Organisms:Comments>
+    <twig:Organisms:Comments current="30023:{{ article.pubkey }}:{{ article.slug|e }}"></twig:Organisms:Comments>
 {% endblock %}
 
 {% block aside %}

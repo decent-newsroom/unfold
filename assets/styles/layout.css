@@ -106,9 +106,9 @@ main {
 .user-menu {
     position: fixed;
     top: 150px;
-    width: 21vw;
+    width: calc(21vw - 10px);
     min-width: 150px;
-    max-width: 280px;
+    max-width: 270px;
 }
 
 .user-nav {

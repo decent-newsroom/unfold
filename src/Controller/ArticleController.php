@@ -7,10 +7,11 @@ use App\Enum\KindsEnum;
 use App\Form\EditorType;
 use App\Service\NostrClient;
 use App\Service\RedisCacheService;
-use App\Util\Bech32\Bech32Decoder;
 use App\Util\CommonMark\Converter;
 use Doctrine\ORM\EntityManagerInterface;
 use League\CommonMark\Exception\CommonMarkException;
+use nostriphant\NIP19\Bech32;
+use nostriphant\NIP19\Data\NAddr;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use swentel\nostr\Key\Key;
@@ -27,52 +28,31 @@ class ArticleController  extends AbstractController
      * @throws \Exception
      */
     #[Route('/article/{naddr}', name: 'article-naddr')]
-    public function naddr(NostrClient $nostrClient, Bech32Decoder $bech32Decoder, $naddr)
+    public function naddr(NostrClient $nostrClient, $naddr)
     {
-        // decode naddr
-        list($hrp, $tlv) = $bech32Decoder->decodeAndParseNostrBech32($naddr);
-        if ($hrp !== 'naddr') {
+        $decoded = new Bech32($naddr);
+
+        if ($decoded->type !== 'naddr') {
             throw new \Exception('Invalid naddr');
         }
-        foreach ($tlv as $item) {
-            // d tag
-            if ($item['type'] === 0) {
-                $slug = implode('', array_map('chr', $item['value']));
-            }
 
-            // relays
-            if ($item['type'] === 1) {
-                $relays[] = implode('', array_map('chr', $item['value']));
-            }
-            // author
-            if ($item['type'] === 2) {
-                $str = '';
-                foreach ($item['value'] as $byte) {
-                    $str .= str_pad(dechex($byte), 2, '0', STR_PAD_LEFT);
-                }
-                $author = $str;
-            }
-            if ($item['type'] === 3) {
-                // big-endian integer
-                $intValue = 0;
-                foreach ($item['value'] as $byte) {
-                    $intValue = ($intValue << 8) | $byte;
-                }
-                $kind = $intValue;
-            }
-        }
+        /** @var NAddr $data */
+        $data = $decoded->data;
+        $slug = $data->identifier;
+        $relays = $data->relays;
+        $author = $data->pubkey;
+        $kind = $data->kind;
 
         if ($kind !== KindsEnum::LONGFORM->value) {
             throw new \Exception('Not a long form article');
         }
 
-        if (empty($relays ?? [])) {
+        if (empty($relays)) {
             // get author npub relays from their config
             $relays = $nostrClient->getNpubRelays($author);
         }
 
-        $nostrClient->getLongFormFromNaddr($slug, $relays ?? null, $author, $kind);
-
+        $nostrClient->getLongFormFromNaddr($slug, $relays, $author, $kind);
         if ($slug) {
             return $this->redirectToRoute('article-slug', ['slug' => $slug]);
         }
@@ -92,6 +72,10 @@ class ArticleController  extends AbstractController
         Converter $converter
     ): Response
     {
+
+        set_time_limit(300); // 5 minutes
+        ini_set('max_execution_time', '300');
+
         $article = null;
         // check if an item with same eventId already exists in the db
         $repository = $entityManager->getRepository(Article::class);
@@ -133,6 +117,59 @@ class ArticleController  extends AbstractController
         ]);
     }
 
+    /**
+     * Fetch complete event to show as preview
+     * POST data contains an object with request params
+     */
+    #[Route('/preview/', name: 'article-preview-event', methods: ['POST'])]
+    public function articlePreviewEvent(
+        Request $request,
+        NostrClient $nostrClient,
+        RedisCacheService $redisCacheService,
+        CacheItemPoolInterface $articlesCache
+    ): Response {
+        $data = $request->getContent();
+        // descriptor is an object with properties type, identifier and data
+        // if type === 'nevent', identifier is the event id
+        // if type === 'naddr', identifier is the naddr
+        // if type === 'nprofile', identifier is the npub
+        $descriptor = json_decode($data);
+        $previewData = [];
+
+        // if nprofile, get from redis cache
+        if ($descriptor->type === 'nprofile') {
+            $hint = json_decode($descriptor->decoded);
+            $key = new Key();
+            $npub = $key->convertPublicKeyToBech32($hint->pubkey);
+            $metadata = $redisCacheService->getMetadata($npub);
+            $metadata->npub = $npub;
+            $metadata->pubkey = $hint->pubkey;
+            $metadata->type = 'nprofile';
+            // Render the NostrPreviewContent component with the preview data
+            $html = $this->renderView('components/Molecules/NostrPreviewContent.html.twig', [
+                'preview' => $metadata
+            ]);
+        } else {
+            // For nevent or naddr, fetch the event data
+            try {
+                $previewData = $nostrClient->getEventFromDescriptor($descriptor);
+                $previewData->type = $descriptor->type; // Add type to the preview data
+                // Render the NostrPreviewContent component with the preview data
+                $html = $this->renderView('components/Molecules/NostrPreviewContent.html.twig', [
+                    'preview' => $previewData
+                ]);
+            } catch (\Exception $e) {
+                $html = '<span>Error fetching preview: ' . htmlspecialchars($e->getMessage()) . '</span>';
+            }
+        }
+
+
+        return new Response(
+            $html,
+            Response::HTTP_OK,
+            ['Content-Type' => 'text/html']
+        );
+    }
 
     /**
      * Create new article

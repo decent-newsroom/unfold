@@ -48,7 +48,7 @@ class Filters extends AbstractExtension
             '/@(?<npub>npub1[0-9a-z]{10,})/i',
             function ($matches) {
                 $npub = $matches['npub'];
-                $short = substr($npub, 0, 8) . '...' . substr($npub, -4);
+                $short = substr($npub, 0, 8) . '…' . substr($npub, -4);
 
                 return sprintf(
                     '<a href="/p/%s" class="mention-link">@%s</a>',

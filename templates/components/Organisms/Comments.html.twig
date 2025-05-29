@@ -6,8 +6,20 @@
                 <small>{{ item.created_at|date('F j Y') }}</small>
             </div>
             <div class="card-body">
-                <p>{{ item.content }}</p>
+                <twig:Atoms:Content content="{{ item.content }}" />
             </div>
+            {# Display Nostr link previews if links detected #}
+            {% if commentLinks[item.id] is defined and commentLinks[item.id]|length > 0 %}
+                <div class="card-footer nostr-previews mt-3">
+                    <div class="preview-container">
+                        {% for link in commentLinks[item.id] %}
+                            <div class="mb-3">
+                                <twig:Molecules:NostrPreview preview="{{ link }}" />
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     {% endfor %}
 </div>
