@@ -18,19 +18,26 @@ class NostrEventRenderer implements NodeRendererInterface
 
         if ($node->getType() === 'nevent') {
             // Construct the local link URL from the special part
-            $url = '/e/' .  $node->getSpecial();
+            $url = '/e/' . $node->getSpecial();
         } else if ($node->getType() === 'naddr') {
             // dump($node);
             // Construct the local link URL from the special part
-            $url = '/' .  $node->getSpecial();
+            $url = '/article/' .  $node->getSpecial();
         }
 
         if (isset($url)) {
             // Create the anchor element
-            return new HtmlElement('a', ['href' => $url], '@' . $node->getSpecial());
+            return new HtmlElement('a', ['href' => $url], '@' . $this->labelFromKey($node->getSpecial()));
         }
 
         return false;
 
+    }
+
+    private function labelFromKey($key): string
+    {
+        $start = substr($key, 0, 8);
+        $end = substr($key, -8);
+        return $start . '…' . $end;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Util\CommonMark\NostrSchemeExtension;
 
+use App\Service\RedisCacheService;
 use League\CommonMark\Parser\Inline\InlineParserInterface;
 use League\CommonMark\Parser\Inline\InlineParserMatch;
 use League\CommonMark\Parser\InlineParserContext;
@@ -13,8 +14,11 @@ use swentel\nostr\Key\Key;
  * but have npub1XXXX instead of a URL
  * @package App\Util\CommonMark
  */
-class NostrMentionParser implements InlineParserInterface
+readonly class NostrMentionParser implements InlineParserInterface
 {
+    public function __construct(
+        private RedisCacheService $redisCacheService
+    ){}
 
     public function getMatchDefinition(): InlineParserMatch
     {
@@ -34,13 +38,14 @@ class NostrMentionParser implements InlineParserInterface
 
         // Extract "npub" part from fullMatch
         $npubLink = substr($fullMatch, strpos($fullMatch, 'npub1'), -1);  // e.g., "npubXXXX"
-        $npubPart = substr($npubLink, 5);  // Extract the part after "npub1", i.e., "XXXX"
 
-        $key = new Key();
-        $hex = $key->convertToHex($npubLink);
+        if (empty($label)) {
+            $metadata = $this->redisCacheService->getMetadata($npubLink);
+            $label = $metadata->display_name ?? $metadata->name;
+        }
 
         // Create a new inline node for the custom link
-        $inlineContext->getContainer()->appendChild(new NostrMentionLink($label, $hex));
+        $inlineContext->getContainer()->appendChild(new NostrMentionLink($label, $npubLink));
 
         // Advance the cursor to consume the matched part (important!)
         $cursor->advanceBy(strlen($fullMatch));

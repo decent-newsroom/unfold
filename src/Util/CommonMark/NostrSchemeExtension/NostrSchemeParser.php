@@ -2,18 +2,18 @@
 
 namespace App\Util\CommonMark\NostrSchemeExtension;
 
-use App\Util\Bech32\Bech32Decoder;
 use League\CommonMark\Parser\Inline\InlineParserInterface;
 use League\CommonMark\Parser\Inline\InlineParserMatch;
 use League\CommonMark\Parser\InlineParserContext;
-use function BitWasp\Bech32\convertBits;
-use function BitWasp\Bech32\decode;
-
+use nostriphant\NIP19\Bech32;
+use nostriphant\NIP19\Data\NAddr;
+use nostriphant\NIP19\Data\NEvent;
+use nostriphant\NIP19\Data\NProfile;
 
 class NostrSchemeParser  implements InlineParserInterface
 {
 
-    public function __construct(private Bech32Decoder $bech32Decoder)
+    public function __construct()
     {
     }
 
@@ -30,58 +30,36 @@ class NostrSchemeParser  implements InlineParserInterface
         // The match is a Bech32 encoded string
         // decode it to get the parts
         $bechEncoded = substr($fullMatch, 6);  // Extract the part after "nostr:", i.e., "XXXX"
-        // dump($bechEncoded);
 
         try {
-            list($hrp, $tlv) = $this->bech32Decoder->decodeAndParseNostrBech32($bechEncoded);
-            // dump($hrp);
-            // dump($tlv);
-            switch ($hrp) {
+            $decoded = new Bech32($bechEncoded);
+
+            switch ($decoded->type) {
                 case 'npub':
-                    $str = '';
-                    list($hrp, $data) = decode($bechEncoded);
-                    $bytes = convertBits($data, count($data), 5, 8, false);
-                    foreach ($bytes as $item) {
-                        $str .= str_pad(dechex($item), 2, '0', STR_PAD_LEFT);
-                    }
-                    $npubPart = $str;
-                    $inlineContext->getContainer()->appendChild(new NostrMentionLink(null, $npubPart));
+                    $inlineContext->getContainer()->appendChild(new NostrMentionLink(null, $decoded->data));
                     break;
                 case 'nprofile':
-                    $type = 0; // npub
-                    foreach ($tlv as $item) {
-                        if ($item['type'] === $type) {
-                            // from array of integers to string
-                            $str = '';
-                            foreach ($item['value'] as $byte) {
-                                $str .= str_pad(dechex($byte), 2, '0', STR_PAD_LEFT);
-                            }
-                            $npubPart = $str;
-                            break;
-                        }
-                    }
-                    if (isset($npubPart)) {
-                        $inlineContext->getContainer()->appendChild(new NostrMentionLink(null, $npubPart));
-                    }
+                    /** @var NProfile $decodedProfile */
+                    $decodedProfile = $decoded->data;
+                    $inlineContext->getContainer()->appendChild(new NostrMentionLink(null, $decodedProfile->getPubkey()));
                     break;
                 case 'nevent':
-                    foreach ($tlv as $item) {
-                        // event id
-                        if ($item['type'] === 0) {
-                            $eventId = implode('', array_map(fn($byte) => sprintf('%02x', $byte), $item['value']));
-                            break;
-                        }
-                        // relays
-                        if ($item['type'] === 1) {
-                            $relays[] = implode('', array_map('chr', $item['value']));
-                        }
-                    }
-                    // dump($relays ?? null);
-                    // TODO also potentially contains relays, author, and kind
-                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('nevent', $eventId, $relays ?? null, null, null));
+                    /** @var NEvent $decodedNpub */
+                    $decodedEvent = $decoded->data;
+                    $eventId = $decodedEvent->getId();
+                    $relays = $decodedEvent->getRelays();
+                    $author = $decodedEvent->getAuthor();
+                    $kind = $decodedEvent->getKind();
+                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('nevent', $eventId, $relays, $author, $kind));
                     break;
                 case 'naddr':
-                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('naddr', $bechEncoded, null, null, null));
+                    /** @var NAddr $decodedNpub */
+                    $decodedEvent = $decoded->data;
+                    $identifier = $decodedEvent->getIdentifier();
+                    $pubkey = $decodedEvent->getPubkey();
+                    $kind = $decodedEvent->getKind();
+                    $relays = $decodedEvent->getRelays();
+                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('naddr', $identifier, $relays, $pubkey, $kind));
                     break;
                 case 'nrelay':
                     // deprecated
