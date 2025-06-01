@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	file \
 	gettext \
 	git \
+        bash \
     libnss3-tools \
     cron \
 	&& rm -rf /var/lib/apt/lists/*
