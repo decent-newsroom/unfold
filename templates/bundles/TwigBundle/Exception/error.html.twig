@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Internal Server Error</h1>
+    <h2>The press has jammed.</h2>
+
+    <p>
+        Something has gone awry in our publishing engine. The ink has spilled, the type has scattered,
+        and the content cannot be delivered at this time.
+    </p>
+
+    <a href="{{ path('homepage') }}">Return to the homepage</a>
+{% endblock %}
