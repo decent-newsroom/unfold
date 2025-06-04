@@ -60,6 +60,7 @@ header {
 .hamburger {
     cursor: pointer;
     display: none; /* Hidden on desktop */
+    font-size: 26px;
 }
 
 .header__logo {
