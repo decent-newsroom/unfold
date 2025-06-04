@@ -1,6 +1,6 @@
 <div {{ attributes }}>
     {% for item in list %}
-        {%  if item.slug is not empty %}
+        {%  if item.slug is not empty and item.title is not empty %}
             <twig:Molecules:Card :article="item"></twig:Molecules:Card>
         {% endif %}
     {% endfor %}
