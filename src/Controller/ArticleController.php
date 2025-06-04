@@ -47,11 +47,6 @@ class ArticleController  extends AbstractController
             throw new \Exception('Not a long form article');
         }
 
-        if (empty($relays)) {
-            // get author npub relays from their config
-            $relays = $nostrClient->getNpubRelays($author);
-        }
-
         $nostrClient->getLongFormFromNaddr($slug, $relays, $author, $kind);
         if ($slug) {
             return $this->redirectToRoute('article-slug', ['slug' => $slug]);

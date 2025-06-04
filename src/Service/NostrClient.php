@@ -218,15 +218,12 @@ class NostrClient
      */
     public function getLongFormFromNaddr($slug, $relayList, $author, $kind): void
     {
-        if (!empty($relayList)) {
-            // Filter out relays that exist in the REPUTABLE_RELAYS list
-            $relayList = array_filter($relayList, function ($relay) {
-                // in array REPUTABLE_RELAYS
-                return str_starts_with($relay, 'wss:') && !str_contains($relay, 'localhost');
-            });
-            $relaySet = $this->createRelaySet($relayList);
+        if (empty($relayList)) {
+            $topAuthorRelays = $this->getTopReputableRelaysForAuthor($author);
+            $authorRelaySet = $this->createRelaySet($topAuthorRelays);
+        } else {
+            $authorRelaySet = $this->createRelaySet($relayList);
         }
-        $hasEvents = false;
 
         try {
             // Create request using the helper method for forest relay set
@@ -236,7 +233,7 @@ class NostrClient
                     'authors' => [$author],
                     'tag' => ['#d', [$slug]]
                 ],
-                relaySet: $relaySet ?? $this->defaultRelaySet
+                relaySet: $authorRelaySet
             );
 
             // Process the response
@@ -245,51 +242,15 @@ class NostrClient
             });
 
             if (!empty($events)) {
-                $this->saveLongFormContent(array_map(function($event) {
-                    $wrapper = new \stdClass();
-                    $wrapper->type = 'EVENT';
-                    $wrapper->event = $event;
-                    return $wrapper;
-                }, $events));
-                $hasEvents = true;
-            }
-
-            // If no events found in theforest, try author's reputable relays
-            if (!$hasEvents) {
-                $topAuthorRelays = $this->getTopReputableRelaysForAuthor($author);
-                $authorRelaySet = $this->createRelaySet($topAuthorRelays);
-
-                $this->logger->info('No results, trying author relays', [
-                    'relays' => $topAuthorRelays
-                ]);
-
-                // Create request using the helper method for author relay set
-                $request = $this->createNostrRequest(
-                    kinds: [$kind],
-                    filters: [
-                        'authors' => [$author],
-                        'tag' => ['#d', [$slug]]
-                    ],
-                    relaySet: $authorRelaySet
-                );
-
-                // Process the response
-                $events = $this->processResponse($request->send(), function($event) {
-                    return $event;
-                });
-
-                if (!empty($events)) {
-                    $this->saveLongFormContent(array_map(function($event) {
-                        $wrapper = new \stdClass();
-                        $wrapper->type = 'EVENT';
-                        $wrapper->event = $event;
-                        return $wrapper;
-                    }, $events));
-                }
+                // Save only the first event (most recent)
+                $event = $events[0];
+                $wrapper = new \stdClass();
+                $wrapper->type = 'EVENT';
+                $wrapper->event = $event;
+                $this->saveLongFormContent([$wrapper]);
             }
         } catch (\Exception $e) {
-            // If any error occurs, fall back to default relay set
-            $this->logger->error('Error querying relays, falling back to defaults', [
+            $this->logger->error('Error querying relays', [
                 'error' => $e->getMessage()
             ]);
             throw new \Exception('Error querying relays', 0, $e);
