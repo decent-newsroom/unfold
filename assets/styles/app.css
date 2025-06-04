@@ -376,10 +376,10 @@ footer a {
     transition: background-color 0.3s ease; /* Smooth hover effect */
 }
 
-/* Hover effect for tags */
-.tag:hover {
-    color: var(--color-text-contrast);
-}
+/*!* Hover effect for tags *!*/
+/*.tag:hover {*/
+/*    color: var(--color-text-contrast);*/
+/*}*/
 
 /* Optional: Responsive adjustments for smaller screens */
 @media (max-width: 768px) {

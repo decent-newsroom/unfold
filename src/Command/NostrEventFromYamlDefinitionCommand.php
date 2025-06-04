@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Entity\Article;
 use App\Enum\IndexStatusEnum;
 use App\Factory\ArticleFactory;
 use App\Service\NostrClient;
@@ -103,31 +102,24 @@ class NostrEventFromYamlDefinitionCommand extends Command
 
         // crawl relays for all the articles and save to db
         $fresh = $this->client->getArticles($articleSlugsList);
+        $articles = [];
         foreach ($fresh as $item) {
             $article = $this->factory->createFromLongFormContentEvent($item);
+            $article->setIndexStatus(IndexStatusEnum::TO_BE_INDEXED);
             $this->entityManager->persist($article);
-        }
-        $this->entityManager->flush();
-
-        // look up all articles in the db and push to index whatever you find
-        $articles = $this->entityManager->getRepository(Article::class)->createQueryBuilder('a')
-            ->where('a.slug IN (:slugs)')
-            ->setParameter('slugs', $articleSlugsList)
-            ->getQuery()
-            ->getResult();
-
-        // mark all of those for indexing
-        foreach ($articles as $article) {
-            if ($article->getIndexStatus() === IndexStatusEnum::NOT_INDEXED) {
-                $article->setIndexStatus(IndexStatusEnum::TO_BE_INDEXED);
-                $this->entityManager->persist($article);
-            }
+            $articles[] = $article;
         }
         $this->entityManager->flush();
 
         // to elastic
         if (count($articles) > 0 ) {
             $this->itemPersister->insertMany($articles); // Insert or skip existing
+            // Set all articles as indexed
+            foreach ($articles as $article) {
+                $article->setIndexStatus(IndexStatusEnum::INDEXED);
+                $this->entityManager->persist($article);
+            }
+            $this->entityManager->flush();
             $output->writeln('<info>Added to index.</info>');
         }
 

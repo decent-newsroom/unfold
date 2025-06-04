@@ -2,24 +2,18 @@
 
 namespace App\Twig\Components\Organisms;
 
-use App\Entity\Article;
-use App\Factory\ArticleFactory;
-use App\Service\NostrClient;
-use Elastica\Query\MatchQuery;
+use Elastica\Query;
 use Elastica\Query\Terms;
 use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use swentel\nostr\Event\Event;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent]
 final class FeaturedList
 {
-    public $category;
+    public string $category;
     public string $title;
     public array $list = [];
 
@@ -47,36 +41,40 @@ final class FeaturedList
                 $this->title = $tag[1];
             }
             if ($tag[0] === 'a') {
-                $parts = explode(':', $tag[1]);
-                if (count($parts) === 3) {
-                    $slugs[] = $parts[2];
+                $parts = explode(':', $tag[1], 3);
+                $slugs[] = end($parts);
+                if (count($slugs) >= 5) {
+                    break; // Limit to 4 items
                 }
             }
         }
 
-        $query = new Terms('slug', array_values($slugs));
-        $res = $this->finder->find($query);
+        $termsQuery = new Terms('slug', array_values($slugs));
+        $query = new Query($termsQuery);
+        $query->setSize(200); // Set size to exceed the number of articles we expect
+        $articles = $this->finder->find($query);
 
-        // Create a map of slug => item to remove duplicates
+        // Create a map of slug => item
         $slugMap = [];
-
-        foreach ($res as $item) {
-            $slug = $item->getSlug();
-
-            if ($slug !== '' && !isset($slugMap[$slug])) {
-                $slugMap[$slug] = $item;
-            }
-        }
-
-        if (!empty($res)) {
-            foreach ($res as $result) {
-                if (!isset($slugMap[$result->getSlug()])) {
-                    $slugMap[$result->getSlug()] = $result;
+        foreach ($articles as $article) {
+            $slug = $article->getSlug();
+            if ($slug !== '') {
+                if (!isset($slugMap[$slug])) {
+                    $slugMap[$slug] = $article;
+                } elseif ($article->getCreatedAt() > $slugMap[$slug]->getCreatedAt()) {
+                    $slugMap[$slug] = $article;
                 }
             }
         }
 
+        // Build ordered list based on original slugs order
+        $orderedList = [];
+        foreach ($slugs as $slug) {
+            if (isset($slugMap[$slug])) {
+                $orderedList[] = $slugMap[$slug];
+            }
+        }
 
-        $this->list = array_slice(array_values($slugMap), 0, 4);
+        $this->list = array_slice($orderedList, 0, 4);
     }
 }

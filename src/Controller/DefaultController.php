@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Elastica\Query;
 use Elastica\Query\Terms;
+use Exception;
 use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\CacheInterface;
-use App\Service\NostrClient;
-use App\Factory\ArticleFactory;
 use Psr\Log\LoggerInterface;
 
 class DefaultController extends AbstractController
@@ -23,7 +23,7 @@ class DefaultController extends AbstractController
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      * @throws InvalidArgumentException
      */
     #[Route('/', name: 'home')]
@@ -51,12 +51,10 @@ class DefaultController extends AbstractController
     #[Route('/cat/{slug}', name: 'magazine-category')]
     public function magCategory($slug, CacheInterface $redisCache,
                                 FinderInterface $finder,
-                                NostrClient $nostrClient,
-                                ArticleFactory $articleFactory,
                                 LoggerInterface $logger): Response
     {
         $catIndex = $redisCache->get('magazine-' . $slug, function (){
-            throw new \Exception('Not found');
+            throw new Exception('Not found');
         });
 
         $list = [];
@@ -76,19 +74,21 @@ class DefaultController extends AbstractController
             }
         }
 
-        // Limit to first 9 coordinates to avoid excessive processing
-        $coordinates = array_slice($coordinates, 0, 9);
-
         if (!empty($coordinates)) {
             // Extract slugs for elasticsearch query
             $slugs = array_map(function($coordinate) {
-                $parts = explode(':', $coordinate);
-                return count($parts) === 3 ? $parts[2] : '';
+                $parts = explode(':', $coordinate, 3);
+                return end($parts);
             }, $coordinates);
             $slugs = array_filter($slugs); // Remove empty values
 
-            // Try to fetch articles from elasticsearch first
-            $query = new Terms('slug', array_values($slugs));
+            // First filter to only include articles with the slugs we want
+            $termsQuery = new Terms('slug', array_values($slugs));
+
+            // Create a Query object to set the size parameter
+            $query = new Query($termsQuery);
+            $query->setSize(200); // Set size to exceed the number of articles we expect
+
             $articles = $finder->find($query);
 
             // Create a map of slug => item to remove duplicates
@@ -96,15 +96,24 @@ class DefaultController extends AbstractController
             foreach ($articles as $item) {
                 $slug = $item->getSlug();
                 if ($slug !== '') {
-                    $slugMap[$slug] = $item;
+                    // If the slugMap doesn't contain it yet, add it
+                    if (!isset($slugMap[$slug])) {
+                        $slugMap[$slug] = $item;
+                    } else {
+                        // If it already exists, compare created_at timestamps and save newest
+                        $existingItem = $slugMap[$slug];
+                        if ($item->getCreatedAt() > $existingItem->getCreatedAt()) {
+                            $slugMap[$slug] = $item;
+                        }
+                    }
                 }
             }
 
             // Find missing coordinates
             $missingCoordinates = [];
             foreach ($coordinates as $coordinate) {
-                $parts = explode(':', $coordinate);
-                if (count($parts) === 3 && !isset($slugMap[$parts[2]])) {
+                $parts = explode(':', $coordinate, 3);
+                if (!isset($slugMap[end($parts)])) {
                     $missingCoordinates[] = $coordinate;
                 }
             }
@@ -138,9 +147,9 @@ class DefaultController extends AbstractController
 
             // Build ordered list based on original coordinates order
             foreach ($coordinates as $coordinate) {
-                $parts = explode(':', $coordinate);
-                if (count($parts) === 3 && isset($slugMap[$parts[2]])) {
-                    $list[] = $slugMap[$parts[2]];
+                $parts = explode(':', $coordinate,3);
+                if (isset($slugMap[end($parts)])) {
+                    $list[] = $slugMap[end($parts)];
                 }
             }
         }

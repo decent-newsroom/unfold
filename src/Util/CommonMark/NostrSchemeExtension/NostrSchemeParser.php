@@ -41,25 +41,25 @@ class NostrSchemeParser  implements InlineParserInterface
                 case 'nprofile':
                     /** @var NProfile $decodedProfile */
                     $decodedProfile = $decoded->data;
-                    $inlineContext->getContainer()->appendChild(new NostrMentionLink(null, $decodedProfile->getPubkey()));
+                    $inlineContext->getContainer()->appendChild(new NostrMentionLink(null, $decodedProfile->pubkey));
                     break;
                 case 'nevent':
                     /** @var NEvent $decodedNpub */
                     $decodedEvent = $decoded->data;
-                    $eventId = $decodedEvent->getId();
-                    $relays = $decodedEvent->getRelays();
-                    $author = $decodedEvent->getAuthor();
-                    $kind = $decodedEvent->getKind();
-                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('nevent', $eventId, $relays, $author, $kind));
+                    $eventId = $decodedEvent->id;
+                    $relays = $decodedEvent->relays;
+                    $author = $decodedEvent->author;
+                    $kind = $decodedEvent->kind;
+                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('nevent', $bechEncoded, $relays, $author, $kind));
                     break;
                 case 'naddr':
                     /** @var NAddr $decodedNpub */
                     $decodedEvent = $decoded->data;
-                    $identifier = $decodedEvent->getIdentifier();
-                    $pubkey = $decodedEvent->getPubkey();
-                    $kind = $decodedEvent->getKind();
-                    $relays = $decodedEvent->getRelays();
-                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('naddr', $identifier, $relays, $pubkey, $kind));
+                    $identifier = $decodedEvent->identifier;
+                    $pubkey = $decodedEvent->pubkey;
+                    $kind = $decodedEvent->kind;
+                    $relays = $decodedEvent->relays;
+                    $inlineContext->getContainer()->appendChild(new NostrSchemeData('naddr', $bechEncoded, $relays, $pubkey, $kind));
                     break;
                 case 'nrelay':
                     // deprecated

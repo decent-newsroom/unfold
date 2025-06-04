@@ -45,7 +45,7 @@ class AuthorController extends AbstractController
             }
         }
 
-        return $this->render('Pages/author.html.twig', [
+        return $this->render('pages/author.html.twig', [
             'author' => $author,
             'npub' => $npub,
             'articles' => $articles

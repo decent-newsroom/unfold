@@ -10,9 +10,13 @@
     <link rel="shortcut icon" href="{{ asset('icons/favicon.ico') }}" />
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="Newsroom" />
+
+    <meta name="lightning" content="coffeecalm152228@getalby.com" />
+
     <link rel="manifest" href="{{ path('pwa_manifest') }}">
 
     {% block ogtags %}
+        <meta property="og:image" content="{{ asset('icons/favicon.ico') }}" />
     {% endblock %}
 
     {% block stylesheets %}
