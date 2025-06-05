@@ -145,7 +145,7 @@ svg.icon {
 
 .featured-list > * {
     box-sizing: border-box; /* so padding/border don't break the layout */
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     padding: 10px;
 }
 
@@ -163,7 +163,7 @@ svg.icon {
     }
 
     .featured-list > * {
-        margin-bottom: 0;
+        margin-bottom: 10px;
         padding: 0;
     }
 }
@@ -188,7 +188,7 @@ div:nth-child(odd) .featured-list {
 }
 
 .featured-list .card {
-    margin-bottom: 0;
+    margin-bottom: 10px;
 }
 
 .featured-list .card:not(:last-child) {
@@ -272,7 +272,7 @@ div:nth-child(odd) .featured-list {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 2em;
+    gap: 20px;
     padding: 0;
 }
 
