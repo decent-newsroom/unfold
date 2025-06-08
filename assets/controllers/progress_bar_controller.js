@@ -6,15 +6,17 @@ export default class extends Controller {
 
   connect() {
     // Listen for clicks on the entire document instead of just the controller element
-    document.addEventListener("click", this.handleClick.bind(this));
+    document.addEventListener("click", this.handleInteraction.bind(this));
+    document.addEventListener("touchend", this.handleInteraction.bind(this));
   }
 
   disconnect() {
     // Clean up event listener when controller disconnects
-    document.removeEventListener("click", this.handleClick.bind(this));
+    document.removeEventListener("click", this.handleInteraction.bind(this));
+    document.removeEventListener("touchend", this.handleInteraction.bind(this));
   }
 
-  handleClick(event) {
+  handleInteraction(event) {
     const link = event.target.closest("a");
     if (link && !link.hasAttribute("data-no-progress") &&
         !event.ctrlKey && !event.metaKey && !event.shiftKey) {
