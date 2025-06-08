@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\NostrClient;
+use App\Service\NostrLinkParser;
 use App\Service\RedisCacheService;
 use Exception;
 use nostriphant\NIP19\Bech32;
@@ -22,7 +23,7 @@ class EventController extends AbstractController
      * @throws Exception
      */
     #[Route('/e/{nevent}', name: 'nevent', requirements: ['nevent' => '^nevent1.*'])]
-    public function index($nevent, NostrClient $nostrClient, RedisCacheService $redisCacheService, LoggerInterface $logger): Response
+    public function index($nevent, NostrClient $nostrClient, RedisCacheService $redisCacheService, NostrLinkParser $nostrLinkParser, LoggerInterface $logger): Response
     {
         $logger->info('Accessing event page', ['nevent' => $nevent]);
 
@@ -76,6 +77,13 @@ class EventController extends AbstractController
                 throw new NotFoundHttpException('Event not found');
             }
 
+            // Parse event content for Nostr links
+            $nostrLinks = [];
+            if (isset($event->content)) {
+                $nostrLinks = $nostrLinkParser->parseLinks($event->content);
+                $logger->info('Parsed Nostr links from content', ['count' => count($nostrLinks)]);
+            }
+
             // If author is included in the event, get metadata
             $authorMetadata = null;
             if (isset($event->pubkey)) {
@@ -83,10 +91,12 @@ class EventController extends AbstractController
                 $npub = $key->convertPublicKeyToBech32($event->pubkey);
                 $authorMetadata = $redisCacheService->getMetadata($npub);
             }
-            // Render template with the event data
+
+            // Render template with the event data and extracted Nostr links
             return $this->render('event/index.html.twig', [
                 'event' => $event,
-                'author' => $authorMetadata
+                'author' => $authorMetadata,
+                'nostrLinks' => $nostrLinks
             ]);
 
         } catch (Exception $e) {
@@ -95,4 +105,3 @@ class EventController extends AbstractController
         }
     }
 }
-

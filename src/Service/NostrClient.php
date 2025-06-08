@@ -267,7 +267,7 @@ class NostrClient
      */
     public function getEventById(string $eventId, array $relays = []): ?object
     {
-        $this->logger->info('Getting event by ID', ['event_id' => $eventId]);
+        $this->logger->info('Getting event by ID', ['event_id' => $eventId, 'relays' => $relays]);
 
         // Use provided relays or default if empty
         $relaySet = empty($relays) ? $this->defaultRelaySet : $this->createRelaySet($relays);
@@ -281,6 +281,7 @@ class NostrClient
 
         // Process the response
         $events = $this->processResponse($request->send(), function($event) {
+            $this->logger->debug('Received event', ['event' => $event]);
             return $event;
         });
 

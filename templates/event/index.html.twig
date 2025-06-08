@@ -27,41 +27,36 @@
             <twig:Atoms:Content :content="event.content" />
         </div>
 
+        {% if nostrLinks is defined and nostrLinks|length > 0 %}
+        <div class="nostr-links">
+            <h4>Referenced Nostr Links</h4>
+            <ul class="link-list">
+                {% for link in nostrLinks %}
+                <li>
+                    <a href="/e/{{ link.identifier }}">{{ link.identifier }}</a>
+                    <span class="link-type">({{ link.type }})</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
         <div class="event-footer">
             <div class="event-tags">
                 {% if event.tags is defined and event.tags|length > 0 %}
-                    <h4>Tags:</h4>
                     <ul>
                     {% for tag in event.tags %}
-                        {% if tag[0] != 'e' and tag[0] != 'p' %}
-                            <li>
-                                <strong>{{ tag[0] }}:</strong> {{ tag[1] }}
-                            </li>
-                        {% endif %}
+                        <li>
+                            <strong>{{ tag[0] }}:</strong> {{ tag[1] }}
+                            {% if tag[2] is defined %}
+                                <span>{{ tag[2] }}</span>
+                            {% endif %}
+                            {% if tag[3] is defined %}
+                                <span>{{ tag[3] }}</span>
+                            {% endif %}
+                        </li>
                     {% endfor %}
                     </ul>
-                {% endif %}
-            </div>
-
-            <div class="event-references">
-                {% if event.tags is defined %}
-                    {% set references = [] %}
-                    {% for tag in event.tags %}
-                        {% if tag[0] == 'e' %}
-                            {% set references = references|merge([tag[1]]) %}
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if references|length > 0 %}
-                        <h4>References:</h4>
-                        <ul>
-                            {% for ref in references %}
-                                <li>
-                                    <a href="{{ path('nevent', {nevent: 'nevent1' ~ ref}) }}">{{ ref|slice(0, 8) }}...</a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -78,7 +73,6 @@
         padding: 1.5rem;
         background: #fff;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     .event-header {
@@ -90,24 +84,34 @@
         padding-bottom: 1rem;
     }
 
-    .author-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .author-picture {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
     .event-content {
         font-size: 1.1rem;
         line-height: 1.6;
         margin-bottom: 2rem;
         white-space: pre-wrap;
+    }
+
+    .nostr-links {
+        margin: 1.5rem 0;
+        padding: 1rem;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+    }
+
+    .link-list {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .link-list li {
+        margin-bottom: 0.5rem;
+        word-break: break-all;
+    }
+
+    .link-type {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
     }
 
     .event-footer {
@@ -118,7 +122,7 @@
         border-top: 1px solid #eee;
     }
 
-    .event-tags, .event-references {
+    .event-tags {
         flex: 1;
     }
 
@@ -129,17 +133,6 @@
 
     .event-tags li, .event-references li {
         margin-bottom: 0.5rem;
-    }
-
-    .event-id {
-        margin-top: 1.5rem;
-        color: #888;
-        text-align: right;
-    }
-
-    .nip05 {
-        color: #0066cc;
-        font-size: 0.9rem;
     }
 </style>
 {% endblock %}
