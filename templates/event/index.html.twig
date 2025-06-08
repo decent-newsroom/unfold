@@ -1,0 +1,145 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nostr Event{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="event-container">
+        <div class="event-header">
+            {% if author %}
+                {% if author.image is defined %}
+                    <img src="{{ author.image }}" class="avatar" alt="{{ author.name }}" onerror="this.style.display = 'none'" />
+                {% endif %}
+
+                <twig:Molecules:UserFromNpub ident="{{ event.pubkey }}" />
+                <div>
+                    {% if author.about is defined %}
+                        {{ author.about|markdown_to_html|mentionify  }}
+                    {% endif %}
+                </div>
+                <hr />
+            {% endif %}
+            <div class="event-meta">
+                <span class="event-date">{{ event.created_at|date('F j, Y - H:i') }}</span>
+            </div>
+        </div>
+        <div class="event-content">
+            <twig:Atoms:Content :content="event.content" />
+        </div>
+
+        <div class="event-footer">
+            <div class="event-tags">
+                {% if event.tags is defined and event.tags|length > 0 %}
+                    <h4>Tags:</h4>
+                    <ul>
+                    {% for tag in event.tags %}
+                        {% if tag[0] != 'e' and tag[0] != 'p' %}
+                            <li>
+                                <strong>{{ tag[0] }}:</strong> {{ tag[1] }}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="event-references">
+                {% if event.tags is defined %}
+                    {% set references = [] %}
+                    {% for tag in event.tags %}
+                        {% if tag[0] == 'e' %}
+                            {% set references = references|merge([tag[1]]) %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if references|length > 0 %}
+                        <h4>References:</h4>
+                        <ul>
+                            {% for ref in references %}
+                                <li>
+                                    <a href="{{ path('nevent', {nevent: 'nevent1' ~ ref}) }}">{{ ref|slice(0, 8) }}...</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .event-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .event-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .author-picture {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .event-content {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        white-space: pre-wrap;
+    }
+
+    .event-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .event-tags, .event-references {
+        flex: 1;
+    }
+
+    .event-tags ul, .event-references ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .event-tags li, .event-references li {
+        margin-bottom: 0.5rem;
+    }
+
+    .event-id {
+        margin-top: 1.5rem;
+        color: #888;
+        text-align: right;
+    }
+
+    .nip05 {
+        color: #0066cc;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
