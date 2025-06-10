@@ -9,6 +9,12 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
+/**
+ * Provides user data transfer object (DTO) operations for authentication and user management.
+ *
+ * This class is responsible for refreshing user data from the database and cache,
+ * and for determining if a given class is supported by the provider.
+ */
 readonly class UserDTOProvider implements UserProviderInterface
 {
     public function __construct(
@@ -20,7 +26,11 @@ readonly class UserDTOProvider implements UserProviderInterface
     }
 
     /**
-     * @inheritDoc
+     * Refreshes the user by reloading it from the database and updating its metadata from cache.
+     *
+     * @param UserInterface $user The user to refresh.
+     * @return UserInterface The refreshed user instance.
+     * @throws \InvalidArgumentException If the provided user is not an instance of User.
      */
     public function refreshUser(UserInterface $user): UserInterface
     {
@@ -40,6 +50,12 @@ readonly class UserDTOProvider implements UserProviderInterface
      */
     public function supportsClass(string $class): bool
     {
+        /**
+         * Checks if the provider supports the given user class.
+         *
+         * @param string $class The class name to check.
+         * @return bool True if the class is supported, false otherwise.
+         */
         return $class === User::class;
     }
 
