@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0770d62016e908fadf4624eba0d077d7",
+    "content-hash": "b86dce5335224284e826d5e102c0bc65",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3058,16 +3058,16 @@
         },
         {
             "name": "nette/utils",
-            "version": "v4.0.6",
+            "version": "v4.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/utils.git",
-                "reference": "ce708655043c7050eb050df361c5e313cf708309"
+                "reference": "e67c4061eb40b9c113b218214e42cb5a0dda28f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/utils/zipball/ce708655043c7050eb050df361c5e313cf708309",
-                "reference": "ce708655043c7050eb050df361c5e313cf708309",
+                "url": "https://api.github.com/repos/nette/utils/zipball/e67c4061eb40b9c113b218214e42cb5a0dda28f2",
+                "reference": "e67c4061eb40b9c113b218214e42cb5a0dda28f2",
                 "shasum": ""
             },
             "require": {
@@ -3138,9 +3138,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nette/utils/issues",
-                "source": "https://github.com/nette/utils/tree/v4.0.6"
+                "source": "https://github.com/nette/utils/tree/v4.0.7"
             },
-            "time": "2025-03-30T21:06:30+00:00"
+            "time": "2025-06-03T04:55:08+00:00"
         },
         {
             "name": "nostriphant/nip-19",
@@ -4904,16 +4904,16 @@
         },
         {
             "name": "swentel/nostr-php",
-            "version": "1.8.0",
+            "version": "1.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nostrver-se/nostr-php.git",
-                "reference": "3e8053becf001c994ba898ea885745aa371827b0"
+                "reference": "8fb8337354b2e9d48a901276c7814d7fa7b25653"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nostrver-se/nostr-php/zipball/3e8053becf001c994ba898ea885745aa371827b0",
-                "reference": "3e8053becf001c994ba898ea885745aa371827b0",
+                "url": "https://api.github.com/repos/nostrver-se/nostr-php/zipball/8fb8337354b2e9d48a901276c7814d7fa7b25653",
+                "reference": "8fb8337354b2e9d48a901276c7814d7fa7b25653",
                 "shasum": ""
             },
             "require": {
@@ -4963,9 +4963,9 @@
                 "chat": "https://t.me/nostr_php",
                 "issue": "https://github.com/swentel/nostr-php/issues",
                 "issues": "https://github.com/nostrver-se/nostr-php/issues",
-                "source": "https://github.com/nostrver-se/nostr-php/tree/1.8.0"
+                "source": "https://github.com/nostrver-se/nostr-php/tree/1.9.2"
             },
-            "time": "2025-05-19T14:29:08+00:00"
+            "time": "2025-06-04T14:51:06+00:00"
         },
         {
             "name": "symfony/asset",
@@ -8686,16 +8686,16 @@
         },
         {
             "name": "symfony/stimulus-bundle",
-            "version": "v2.25.2",
+            "version": "v2.26.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/stimulus-bundle.git",
-                "reference": "5a6aef0646119530da862d5afa1386ade3b9ed43"
+                "reference": "82c174ebe564e6ecc1412974b6380b86d450675f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/stimulus-bundle/zipball/5a6aef0646119530da862d5afa1386ade3b9ed43",
-                "reference": "5a6aef0646119530da862d5afa1386ade3b9ed43",
+                "url": "https://api.github.com/repos/symfony/stimulus-bundle/zipball/82c174ebe564e6ecc1412974b6380b86d450675f",
+                "reference": "82c174ebe564e6ecc1412974b6380b86d450675f",
                 "shasum": ""
             },
             "require": {
@@ -8735,7 +8735,7 @@
                 "symfony-ux"
             ],
             "support": {
-                "source": "https://github.com/symfony/stimulus-bundle/tree/v2.25.2"
+                "source": "https://github.com/symfony/stimulus-bundle/tree/v2.26.1"
             },
             "funding": [
                 {
@@ -8751,7 +8751,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-05-19T11:54:27+00:00"
+            "time": "2025-06-05T17:25:17+00:00"
         },
         {
             "name": "symfony/stopwatch",
@@ -9351,16 +9351,16 @@
         },
         {
             "name": "symfony/ux-icons",
-            "version": "v2.25.0",
+            "version": "v2.26.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/ux-icons.git",
-                "reference": "430b2753aa55a46baa001055bf7976b62bc96942"
+                "reference": "e5c1e5b5093ae26dba45d0f3390a1e21f305c47a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/ux-icons/zipball/430b2753aa55a46baa001055bf7976b62bc96942",
-                "reference": "430b2753aa55a46baa001055bf7976b62bc96942",
+                "url": "https://api.github.com/repos/symfony/ux-icons/zipball/e5c1e5b5093ae26dba45d0f3390a1e21f305c47a",
+                "reference": "e5c1e5b5093ae26dba45d0f3390a1e21f305c47a",
                 "shasum": ""
             },
             "require": {
@@ -9420,7 +9420,7 @@
                 "twig"
             ],
             "support": {
-                "source": "https://github.com/symfony/ux-icons/tree/v2.25.0"
+                "source": "https://github.com/symfony/ux-icons/tree/v2.26.0"
             },
             "funding": [
                 {
@@ -9436,20 +9436,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-04-07T13:54:07+00:00"
+            "time": "2025-05-30T02:07:34+00:00"
         },
         {
             "name": "symfony/ux-live-component",
-            "version": "v2.25.2",
+            "version": "v2.26.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/ux-live-component.git",
-                "reference": "79e8cc179eb21119547c492ae21e4bf529ac1a15"
+                "reference": "fe860a47f164c4ead89b9cb5cf7d3a13835de0a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/ux-live-component/zipball/79e8cc179eb21119547c492ae21e4bf529ac1a15",
-                "reference": "79e8cc179eb21119547c492ae21e4bf529ac1a15",
+                "url": "https://api.github.com/repos/symfony/ux-live-component/zipball/fe860a47f164c4ead89b9cb5cf7d3a13835de0a3",
+                "reference": "fe860a47f164c4ead89b9cb5cf7d3a13835de0a3",
                 "shasum": ""
             },
             "require": {
@@ -9462,7 +9462,9 @@
                 "twig/twig": "^3.10.3"
             },
             "conflict": {
-                "symfony/config": "<5.4.0"
+                "symfony/config": "<5.4.0",
+                "symfony/property-info": "~7.0.0",
+                "symfony/type-info": "<7.1"
             },
             "require-dev": {
                 "doctrine/annotations": "^1.0",
@@ -9515,7 +9517,7 @@
                 "twig"
             ],
             "support": {
-                "source": "https://github.com/symfony/ux-live-component/tree/v2.25.2"
+                "source": "https://github.com/symfony/ux-live-component/tree/v2.26.0"
             },
             "funding": [
                 {
@@ -9531,20 +9533,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-05-19T11:54:27+00:00"
+            "time": "2025-05-31T15:09:39+00:00"
         },
         {
             "name": "symfony/ux-twig-component",
-            "version": "v2.25.2",
+            "version": "v2.26.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/ux-twig-component.git",
-                "reference": "d20da25517fc09d147897d02819a046f0a0f6735"
+                "reference": "825e653b34fb48ed2198913c603d80f7632fe9c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/ux-twig-component/zipball/d20da25517fc09d147897d02819a046f0a0f6735",
-                "reference": "d20da25517fc09d147897d02819a046f0a0f6735",
+                "url": "https://api.github.com/repos/symfony/ux-twig-component/zipball/825e653b34fb48ed2198913c603d80f7632fe9c1",
+                "reference": "825e653b34fb48ed2198913c603d80f7632fe9c1",
                 "shasum": ""
             },
             "require": {
@@ -9598,7 +9600,7 @@
                 "twig"
             ],
             "support": {
-                "source": "https://github.com/symfony/ux-twig-component/tree/v2.25.2"
+                "source": "https://github.com/symfony/ux-twig-component/tree/v2.26.0"
             },
             "funding": [
                 {
@@ -9614,7 +9616,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-05-20T13:06:01+00:00"
+            "time": "2025-05-26T06:21:54+00:00"
         },
         {
             "name": "symfony/var-dumper",
@@ -10015,6 +10017,54 @@
                 }
             ],
             "time": "2025-01-07T12:50:05+00:00"
+        },
+        {
+            "name": "tkijewski/php-lnurl",
+            "version": "v0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tkthundr/php-lnurl.git",
+                "reference": "ce92e4a81083cafab3236be0a4ed0ee06a5066be"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tkthundr/php-lnurl/zipball/ce92e4a81083cafab3236be0a4ed0ee06a5066be",
+                "reference": "ce92e4a81083cafab3236be0a4ed0ee06a5066be",
+                "shasum": ""
+            },
+            "require": {
+                "bitwasp/bech32": "*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.4.0",
+                "squizlabs/php_codesniffer": "^2.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/lnurl.php"
+                ],
+                "psr-4": {
+                    "tkijewski\\lnurl\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Unlicense"
+            ],
+            "authors": [
+                {
+                    "name": "Tim Kijewski",
+                    "role": "Author"
+                }
+            ],
+            "description": "PHP implementation of lnurl Spec",
+            "homepage": "https://github.com/tkijewski/php-lnurl",
+            "support": {
+                "issues": "https://github.com/tkthundr/php-lnurl/issues",
+                "source": "https://github.com/tkthundr/php-lnurl/tree/v0.0.1"
+            },
+            "time": "2019-08-26T04:16:13+00:00"
         },
         {
             "name": "twig/extra-bundle",
@@ -10430,16 +10480,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.4.0",
+            "version": "v5.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "447a020a1f875a434d62f2a401f53b82a396e494"
+                "reference": "ae59794362fe85e051a58ad36b289443f57be7a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/447a020a1f875a434d62f2a401f53b82a396e494",
-                "reference": "447a020a1f875a434d62f2a401f53b82a396e494",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/ae59794362fe85e051a58ad36b289443f57be7a9",
+                "reference": "ae59794362fe85e051a58ad36b289443f57be7a9",
                 "shasum": ""
             },
             "require": {
@@ -10482,9 +10532,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.4.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.5.0"
             },
-            "time": "2024-12-30T11:07:19+00:00"
+            "time": "2025-05-31T08:24:38+00:00"
         },
         {
             "name": "phar-io/manifest",

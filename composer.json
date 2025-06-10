@@ -50,6 +50,7 @@
         "symfony/ux-live-component": "^2.21",
         "symfony/workflow": "7.1.*",
         "symfony/yaml": "7.1.*",
+        "tkijewski/php-lnurl": "*",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/markdown-extra": "^3.21",
         "twig/string-extra": "^3.21",
