@@ -5,16 +5,31 @@ export default class extends Controller {
   static targets = ["bar"];
 
   connect() {
-    // Listen for clicks on the entire document instead of just the controller element
-    document.addEventListener("click", this.handleInteraction.bind(this));
-    document.addEventListener("touchend", this.handleInteraction.bind(this));
+    document.addEventListener("click", this.handleInteraction);
+    document.addEventListener("touchstart", this.handleTouchStart);
+    document.addEventListener("touchend", this.handleTouchEnd);
   }
 
   disconnect() {
-    // Clean up event listener when controller disconnects
-    document.removeEventListener("click", this.handleInteraction.bind(this));
-    document.removeEventListener("touchend", this.handleInteraction.bind(this));
+    document.removeEventListener("click", this.handleInteraction);
+    document.removeEventListener("touchstart", this.handleTouchStart);
+    document.removeEventListener("touchend", this.handleTouchEnd);
   }
+
+  handleTouchStart = (event) => {
+    const touch = event.changedTouches[0];
+    this.touchStartX = touch.screenX;
+    this.touchStartY = touch.screenY;
+  };
+
+  handleTouchEnd = (event) => {
+    const touch = event.changedTouches[0];
+    const dx = Math.abs(touch.screenX - this.touchStartX);
+    const dy = Math.abs(touch.screenY - this.touchStartY);
+    if (dx < 10 && dy < 10) {
+      this.handleInteraction(event);
+    }
+  };
 
   handleInteraction(event) {
     const link = event.target.closest("a");
