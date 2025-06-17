@@ -23,7 +23,7 @@ final class SearchComponent
 {
     use DefaultActionTrait;
 
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, useSerializerForHydration: true)]
     public string $query = '';
     public array $results = [];
 
@@ -41,8 +41,8 @@ final class SearchComponent
     #[LiveProp]
     public int $resultsPerPage = 12;
 
-    private const SESSION_KEY = 'last_search_results';
-    private const SESSION_QUERY_KEY = 'last_search_query';
+    private const string SESSION_KEY = 'last_search_results';
+    private const string SESSION_QUERY_KEY = 'last_search_query';
 
     public function __construct(
         private readonly FinderInterface $finder,
@@ -53,13 +53,14 @@ final class SearchComponent
         private readonly RequestStack $requestStack
     )
     {
-        $token = $this->tokenStorage->getToken();
-        $this->npub = $token?->getUserIdentifier();
     }
 
     public function mount(): void
     {
-        if ($this->npub) {
+        $token = $this->tokenStorage->getToken();
+        $this->npub = $token?->getUserIdentifier();
+
+        if ($this->npub !== null) {
             try {
                 $this->credits = $this->creditsManager->getBalance($this->npub);
                 $this->logger->info($this->credits);
@@ -86,6 +87,9 @@ final class SearchComponent
     #[LiveAction]
     public function search(): void
     {
+        $token = $this->tokenStorage->getToken();
+        $this->npub = $token?->getUserIdentifier();
+
         $this->logger->info("Query: {$this->query}, npub: {$this->npub}");
 
         if (empty($this->query)) {
