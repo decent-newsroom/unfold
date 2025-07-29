@@ -6,7 +6,7 @@ namespace App\Controller;
 
 use App\Repository\ArticleRepository;
 use App\Service\NostrClient;
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use Exception;
 use swentel\nostr\Key\Key;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,12 +19,12 @@ class AuthorController extends AbstractController
      * @throws Exception
      */
     #[Route('/p/{npub}', name: 'author-profile', requirements: ['npub' => '^npub1.*'])]
-    public function index($npub, NostrClient $nostrClient, RedisCacheService $redisCacheService, ArticleRepository $articleRepository): Response
+    public function index($npub, NostrClient $nostrClient, CacheService $cacheService, ArticleRepository $articleRepository): Response
     {
         $keys = new Key();
         $pubkey = $keys->convertToHex($npub);
 
-        $author = $redisCacheService->getMetadata($npub);
+        $author = $cacheService->getMetadata($npub);
         // Retrieve long-form content for the author
         try {
             $list = $nostrClient->getLongFormContentForPubkey($npub);

@@ -16,9 +16,9 @@ class Header
     /**
      * @throws InvalidArgumentException
      */
-    public function __construct(private readonly CacheInterface $redisCache)
+    public function __construct(private readonly CacheInterface $cache)
     {
-        $mag = $this->redisCache->get('magazine-newsroom-magazine-by-newsroom', function (){
+        $mag = $this->cache->get('magazine-newsroom-magazine-by-newsroom', function (){
             return null;
         });
 

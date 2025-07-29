@@ -27,17 +27,3 @@ services:
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - '%env(DATABASE_URL)%'
-
-    # Redis (still used for cache, just not sessions)
-    Symfony\Component\Cache\Adapter\RedisAdapter:
-        arguments:
-            - '@Redis'
-
-    Redis:
-        # you can also use \RedisArray, \RedisCluster, \Relay\Relay or \Predis\Client classes
-        class: Redis
-        calls:
-            - connect:
-                - '%env(REDIS_HOST)%'
-            - auth:
-                - '%env(REDIS_PASSWORD)%'

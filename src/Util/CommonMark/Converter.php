@@ -2,7 +2,7 @@
 
 namespace App\Util\CommonMark;
 
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use App\Util\CommonMark\ImagesExtension\RawImageLinkExtension;
 use App\Util\CommonMark\NostrSchemeExtension\NostrSchemeExtension;
 use League\CommonMark\Environment\Environment;
@@ -25,8 +25,10 @@ use League\CommonMark\Renderer\HtmlDecorator;
 readonly class Converter
 {
     public function __construct(
-        private RedisCacheService $redisCacheService
-    ){}
+        private CacheService $cacheService
+    )
+    {
+    }
 
     /**
      * @throws CommonMarkException
@@ -64,7 +66,7 @@ readonly class Converter
         $environment->addExtension(new TableExtension());
         $environment->addExtension(new StrikethroughExtension());
         // create a custom extension, that handles nostr mentions
-        $environment->addExtension(new NostrSchemeExtension($this->redisCacheService));
+        $environment->addExtension(new NostrSchemeExtension($this->cacheService));
         $environment->addExtension(new SmartPunctExtension());
         $environment->addExtension(new EmbedExtension());
         $environment->addRenderer(Embed::class, new HtmlDecorator(new EmbedRenderer(), 'div', ['class' => 'embedded-content']));

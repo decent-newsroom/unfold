@@ -2,7 +2,7 @@
 
 namespace App\Twig\Components\Molecules;
 
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use swentel\nostr\Key\Key;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
@@ -13,7 +13,7 @@ final class UserFromNpub
     public string $npub;
     public $user = null;
 
-    public function __construct(private readonly RedisCacheService $redisCacheService)
+    public function __construct(private readonly CacheService $cacheService)
     {
     }
 
@@ -27,6 +27,6 @@ final class UserFromNpub
         } else {
             $this->npub = $ident;
         }
-        $this->user = $this->redisCacheService->getMetadata($this->npub);
+        $this->user = $this->cacheService->getMetadata($this->npub);
     }
 }

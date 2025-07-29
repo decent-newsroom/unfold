@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Enum\KindsEnum;
 use App\Form\EditorType;
 use App\Service\NostrClient;
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use App\Util\CommonMark\Converter;
 use Doctrine\ORM\EntityManagerInterface;
 use League\CommonMark\Exception\CommonMarkException;
@@ -62,7 +62,7 @@ class ArticleController  extends AbstractController
     public function article(
         $slug,
         EntityManagerInterface $entityManager,
-        RedisCacheService $redisCacheService,
+        CacheService $cacheService,
         CacheItemPoolInterface $articlesCache,
         Converter $converter
     ): Response
@@ -101,7 +101,7 @@ class ArticleController  extends AbstractController
 
         $key = new Key();
         $npub = $key->convertPublicKeyToBech32($article->getPubkey());
-        $author = $redisCacheService->getMetadata($npub);
+        $author = $cacheService->getMetadata($npub);
 
 
         return $this->render('pages/article.html.twig', [
@@ -120,7 +120,7 @@ class ArticleController  extends AbstractController
     public function articlePreviewEvent(
         Request $request,
         NostrClient $nostrClient,
-        RedisCacheService $redisCacheService,
+        CacheService $cacheService,
         CacheItemPoolInterface $articlesCache
     ): Response {
         $data = $request->getContent();
@@ -136,7 +136,7 @@ class ArticleController  extends AbstractController
             $hint = json_decode($descriptor->decoded);
             $key = new Key();
             $npub = $key->convertPublicKeyToBech32($hint->pubkey);
-            $metadata = $redisCacheService->getMetadata($npub);
+            $metadata = $cacheService->getMetadata($npub);
             $metadata->npub = $npub;
             $metadata->pubkey = $hint->pubkey;
             $metadata->type = 'nprofile';

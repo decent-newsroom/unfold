@@ -6,7 +6,7 @@ namespace App\Controller;
 
 use App\Service\NostrClient;
 use App\Service\NostrLinkParser;
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use Exception;
 use nostriphant\NIP19\Bech32;
 use nostriphant\NIP19\Data;
@@ -23,7 +23,7 @@ class EventController extends AbstractController
      * @throws Exception
      */
     #[Route('/e/{nevent}', name: 'nevent', requirements: ['nevent' => '^nevent1.*'])]
-    public function index($nevent, NostrClient $nostrClient, RedisCacheService $redisCacheService, NostrLinkParser $nostrLinkParser, LoggerInterface $logger): Response
+    public function index($nevent, NostrClient $nostrClient, CacheService $cacheService, NostrLinkParser $nostrLinkParser, LoggerInterface $logger): Response
     {
         $logger->info('Accessing event page', ['nevent' => $nevent]);
 
@@ -89,7 +89,7 @@ class EventController extends AbstractController
             if (isset($event->pubkey)) {
                 $key = new Key();
                 $npub = $key->convertPublicKeyToBech32($event->pubkey);
-                $authorMetadata = $redisCacheService->getMetadata($npub);
+                $authorMetadata = $cacheService->getMetadata($npub);
             }
 
             // Render template with the event data and extracted Nostr links

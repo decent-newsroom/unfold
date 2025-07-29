@@ -2,7 +2,7 @@
 
 namespace App\Util\CommonMark\NostrSchemeExtension;
 
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use League\CommonMark\Parser\Inline\InlineParserInterface;
 use League\CommonMark\Parser\Inline\InlineParserMatch;
 use League\CommonMark\Parser\InlineParserContext;
@@ -14,7 +14,7 @@ use League\CommonMark\Parser\InlineParserContext;
 readonly class NostrRawNpubParser implements InlineParserInterface
 {
 
-    public function __construct(private RedisCacheService $redisCacheService)
+    public function __construct(private CacheService $cacheService)
     {
     }
 
@@ -28,7 +28,7 @@ readonly class NostrRawNpubParser implements InlineParserInterface
         $cursor = $inlineContext->getCursor();
         // Get the match and extract relevant parts
         $fullMatch = $inlineContext->getFullMatch();
-        $meta = $this->redisCacheService->getMetadata($fullMatch);
+        $meta = $this->cacheService->getMetadata($fullMatch);
 
         // Create a new inline node for the custom link
         $inlineContext->getContainer()->appendChild(new NostrMentionLink($meta->name, $fullMatch));

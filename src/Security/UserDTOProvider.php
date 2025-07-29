@@ -3,7 +3,7 @@
 namespace App\Security;
 
 use App\Entity\User;
-use App\Service\RedisCacheService;
+use App\Service\CacheService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -19,7 +19,7 @@ readonly class UserDTOProvider implements UserProviderInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private RedisCacheService      $redisCacheService,
+        private CacheService      $cacheService,
         private LoggerInterface        $logger
     )
     {
@@ -40,7 +40,7 @@ readonly class UserDTOProvider implements UserProviderInterface
         $this->logger->info('Refresh user.', ['user' => $user->getUserIdentifier()]);
         $freshUser = $this->entityManager->getRepository(User::class)
             ->findOneBy(['npub' => $user->getUserIdentifier()]);
-        $metadata = $this->redisCacheService->getMetadata($user->getUserIdentifier());
+        $metadata = $this->cacheService->getMetadata($user->getUserIdentifier());
         $freshUser->setMetadata($metadata);
         return $freshUser;
     }
@@ -75,7 +75,7 @@ readonly class UserDTOProvider implements UserProviderInterface
             $this->entityManager->flush();
         }
 
-        $metadata = $this->redisCacheService->getMetadata($identifier);
+        $metadata = $this->cacheService->getMetadata($identifier);
         $user->setMetadata($metadata);
         $this->logger->debug('User metadata set.', ['metadata' => json_encode($user->getMetadata())]);
 

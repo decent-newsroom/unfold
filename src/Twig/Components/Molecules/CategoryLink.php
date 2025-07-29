@@ -11,17 +11,16 @@ final class CategoryLink
     public string $title;
     public string $slug;
 
-    public function __construct(private CacheInterface $redisCache)
+    public function __construct(private CacheInterface $cache)
     {
     }
 
-    public function mount($coordinate): void
+    public function mount($category): void
     {
-        if (key_exists(1, $coordinate)) {
-            $parts = explode(':', $coordinate[1]);
-            $this->slug = $parts[2];
-            $cat = $this->redisCache->get('magazine-' . $parts[2], function (){
-                return null;
+        $parts = explode(':', $category[1]);
+        try {
+            $cat = $this->cache->get('magazine-' . $parts[2], function (){
+                throw new \Exception('Not found');
             });
 
             $tags = $cat->getTags();
@@ -31,10 +30,8 @@ final class CategoryLink
             });
 
             $this->title = $title[array_key_first($title)][1];
-        } else {
-            dump($coordinate);die();
+        } catch (\Exception $e) {
+            // Handle cache miss
         }
-
     }
-
 }

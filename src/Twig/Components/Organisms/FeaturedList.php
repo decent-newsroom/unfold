@@ -16,7 +16,7 @@ final class FeaturedList
     public array $list = [];
 
     public function __construct(
-        private readonly CacheInterface $redisCache,
+        private readonly CacheInterface $cache,
         private readonly ArticleRepository $articleRepository)
     {
     }
@@ -29,7 +29,7 @@ final class FeaturedList
     {
         $parts = explode(':', $category[1]);
         /** @var Event $catIndex */
-        $catIndex = $this->redisCache->get('magazine-' . $parts[2], function (){
+        $catIndex = $this->cache->get('magazine-' . $parts[2], function (){
             throw new \Exception('Not found');
         });
 
