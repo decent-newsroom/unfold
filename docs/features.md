@@ -10,6 +10,18 @@
   - Article indexing commands
   - Controllers using Elasticsearch queries
 
+## Credit System (REMOVED)
+- **Status**: Completely removed as part of scaling down
+- **Previous implementation**: Credit-based search system with Redis storage
+- **Components removed**:
+  - Entire `src/Credits/` directory (CreditsManager, RedisCreditStore, CreditTransaction entity)
+  - GetCreditsComponent (Twig component for adding credits)
+  - CreditTransactionController (admin interface)
+  - Credit accounting in SearchComponent
+  - Credit balance display in search interface
+  - Credits cache configuration
+  - Credit translation keys
+
 ## Core Features to Preserve
 - Article management (CRUD operations)
 - Article display and listing

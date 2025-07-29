@@ -10,11 +10,6 @@
                 />
                 <button type="submit"><twig:ux:icon name="iconoir:search" class="icon" /></button>
             </label>
-            <div style="text-align: right">
-                <small class="help-text">
-                    <em>{{ 'credit.balance'|trans({'%count%': credits, 'count': credits}) }}</em>
-                </small>
-            </div>
         </form>
 
             <!-- Loading Indicator -->
@@ -31,11 +26,4 @@
         {% elseif this.query is not empty %}
             <p><small>{{ 'text.noResults'|trans }}</small></p>
         {% endif %}
-
-    {% block aside %}
-        {% if credits == 0 %}
-            <twig:GetCreditsComponent />
-        {% endif %}
-    {% endblock %}
 </div>
-

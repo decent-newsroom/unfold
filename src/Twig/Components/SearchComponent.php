@@ -2,15 +2,12 @@
 
 namespace App\Twig\Components;
 
-use App\Credits\Service\CreditsManager;
 use App\Repository\ArticleRepository;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
-use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -26,9 +23,6 @@ final class SearchComponent
 
     public bool $interactive = true;
 
-    public int $credits = 0;
-    public ?string $npub = null;
-
     #[LiveProp]
     public int $vol = 0;
 
@@ -43,7 +37,6 @@ final class SearchComponent
 
     public function __construct(
         private readonly ArticleRepository $articleRepository,
-        private readonly CreditsManager $creditsManager,
         private readonly TokenStorageInterface $tokenStorage,
         private readonly LoggerInterface $logger,
         private readonly CacheInterface $cache,
@@ -54,19 +47,6 @@ final class SearchComponent
 
     public function mount(): void
     {
-        $token = $this->tokenStorage->getToken();
-        $this->npub = $token?->getUserIdentifier();
-
-        if ($this->npub !== null) {
-            try {
-                $this->credits = $this->creditsManager->getBalance($this->npub);
-                $this->logger->info($this->credits);
-            } catch (InvalidArgumentException $e) {
-                $this->logger->error($e);
-                $this->credits = $this->creditsManager->resetBalance($this->npub);
-            }
-        }
-
         // Restore search results from session if available and no query provided
         if (empty($this->query)) {
             $session = $this->requestStack->getSession();
@@ -78,27 +58,15 @@ final class SearchComponent
         }
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     #[LiveAction]
     public function search(): void
     {
-        $token = $this->tokenStorage->getToken();
-        $this->npub = $token?->getUserIdentifier();
-
-        $this->logger->info("Query: {$this->query}, npub: {$this->npub}");
+        $this->logger->info("Query: {$this->query}");
 
         if (empty($this->query)) {
             $this->results = [];
             $this->clearSearchCache();
             return;
-        }
-
-        try {
-            $this->credits = $this->creditsManager->getBalance($this->npub);
-        } catch (InvalidArgumentException $e) {
-            $this->credits = $this->creditsManager->resetBalance($this->npub);
         }
 
         // Check if the same query exists in session
@@ -110,15 +78,8 @@ final class SearchComponent
             return;
         }
 
-        if (!$this->creditsManager->canAfford($this->npub, 1)) {
-            $this->results = [];
-            return;
-        }
-
         try {
             $this->results = [];
-            $this->creditsManager->spendCredits($this->npub, 1, 'search');
-            $this->credits--;
 
             // Use database-based search instead of Elasticsearch
             $offset = ($this->page - 1) * $this->resultsPerPage;
@@ -140,12 +101,6 @@ final class SearchComponent
             $this->logger->error('Search error: ' . $e->getMessage());
             $this->results = [];
         }
-    }
-
-    #[LiveListener('creditsAdded')]
-    public function incrementCreditsCount(): void
-    {
-        $this->credits += 5;
     }
 
     /**

@@ -11,6 +11,3 @@ heading:
     editNzine: 'Edit your N-Zine'
     search: 'Search'
     index: 'Index'
-credit:
-    balance: '{0} No credits|{1} 1 credit|]1,Inf] %count% credits'
-
