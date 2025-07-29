@@ -28,12 +28,6 @@ class NostrClient
      */
     private const array REPUTABLE_RELAYS = [
         'wss://theforest.nostr1.com',
-        'wss://relay.damus.io',
-        'wss://relay.primal.net',
-        'wss://nos.lol',
-        'wss://relay.snort.social',
-        'wss://nostr.land',
-        'wss://purplepag.es',
     ];
 
     public function __construct(private readonly EntityManagerInterface $entityManager,
@@ -43,9 +37,7 @@ class NostrClient
                                 private readonly LoggerInterface $logger)
     {
         $this->defaultRelaySet = new RelaySet();
-        $this->defaultRelaySet->addRelay(new Relay('wss://theforest.nostr1.com')); // public aggregator relay
-        $this->defaultRelaySet->addRelay(new Relay('wss://relay.damus.io')); // public aggregator relay
-        $this->defaultRelaySet->addRelay(new Relay('wss://relay.primal.net')); // public aggregator relay
+        $this->defaultRelaySet->addRelay(new Relay('wss://theforest.nostr1.com'));
     }
 
     /**
