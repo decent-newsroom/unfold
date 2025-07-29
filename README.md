@@ -14,3 +14,4 @@ cd unfold
 ### Create the .env file
 
 Copy the example file `.env.dist` and replace placeholders with your actual configuration.
+

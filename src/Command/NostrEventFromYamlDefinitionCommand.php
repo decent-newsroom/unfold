@@ -24,11 +24,11 @@ class NostrEventFromYamlDefinitionCommand extends Command
 {
     private string $nsec;
 
-    public function __construct(private readonly CacheInterface           $redisCache,
-                                private readonly NostrClient              $client,
-                                private readonly ArticleFactory           $factory,
-                                ParameterBagInterface                     $bag,
-                                private readonly EntityManagerInterface   $entityManager)
+    public function __construct(private readonly CacheInterface         $cache,
+                                private readonly NostrClient            $client,
+                                private readonly ArticleFactory         $factory,
+                                ParameterBagInterface                   $bag,
+                                private readonly EntityManagerInterface $entityManager)
     {
         $this->nsec = $bag->get('nsec');
         parent::__construct();
@@ -86,9 +86,9 @@ class NostrEventFromYamlDefinitionCommand extends Command
                 });
                 // Generate a Redis key
                 $cacheKey = 'magazine-' . $slug[0][1];
-                $cacheItem = $this->redisCache->getItem($cacheKey);
+                $cacheItem = $this->cache->getItem($cacheKey);
                 $cacheItem->set($event);
-                $this->redisCache->save($cacheItem);
+                $this->cache->save($cacheItem);
 
                 $output->writeln("<info>Saved index.</info>");
             } catch (\Exception $e) {
@@ -99,16 +99,13 @@ class NostrEventFromYamlDefinitionCommand extends Command
 
         // crawl relays for all the articles and save to db
         $fresh = $this->client->getArticles($articleSlugsList);
-        $articles = [];
         foreach ($fresh as $item) {
             $article = $this->factory->createFromLongFormContentEvent($item);
             $this->entityManager->persist($article);
-            $articles[] = $article;
         }
         $this->entityManager->flush();
 
         $output->writeln('<info>Articles saved to database.</info>');
-        $output->writeln('<info>Conversion complete.</info>');
         return Command::SUCCESS;
     }
 }
