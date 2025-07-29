@@ -7,7 +7,5 @@ heading:
     roles: 'Roles'
     logout: 'Log out'
     logIn: 'Log in'
-    createNzine: 'Create an N-Zine'
-    editNzine: 'Edit your N-Zine'
     search: 'Search'
     index: 'Index'

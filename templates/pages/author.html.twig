@@ -54,18 +54,8 @@
 {#    </div>#}
 {#    {% endif %}#}
 
-{#    {% if nzine %}#}
-{#        <a href="{{ path('nzine_view', {npub: author.npub}) }}">View as N-Zine</a>#}
-
-{#        <h2>List of indices</h2>#}
-{#        {% for i in idx %}#}
-{#            {{ i.title }}#}
-{#        {% endfor %}#}
-{#    {% endif %}#}
-
     <twig:Organisms:CardList :list="articles" class="article-list"></twig:Organisms:CardList>
 {% endblock %}
 
 {% block aside %}
-{#    <twig:Organisms:ZineList :nzines="nzines" />#}
 {% endblock %}
