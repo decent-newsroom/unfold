@@ -38,7 +38,7 @@ class Nzine
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $slug = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: Types::STRING)]
     private string $state = 'draft';
 
     public function __construct()

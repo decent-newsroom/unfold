@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Service\EncryptionService;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Ignore;
 
@@ -12,11 +13,14 @@ class NzineBot
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
+
     private ?EncryptionService $encryptionService = null;
-    #[ORM\Column(type: 'string', length: 255)]
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $encryptedNsec = null;
+
     #[Ignore]
     private ?string $nsec = null;
 

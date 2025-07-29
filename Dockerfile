@@ -46,7 +46,7 @@ ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
-RUN install-php-extensions pdo pdo_pgsql
+RUN install-php-extensions pdo pdo_mysql
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
 
@@ -100,5 +100,4 @@ RUN set -eux; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
-	chmod +x bin/console; sync; \
-    docker exec newsroom-php-1 php bin/console  asset-map:compile;
+	chmod +x bin/console; sync;
