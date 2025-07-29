@@ -22,6 +22,12 @@ class Header
             return null;
         });
 
+        // Handle case when magazine is not found
+        if ($mag === null) {
+            $this->cats = [];
+            return;
+        }
+
         $tags = $mag->getTags();
 
         $this->cats = array_filter($tags, function($tag) {

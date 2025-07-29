@@ -424,7 +424,7 @@ class NostrClient
 
         // Create request using the helper method
         $request = $this->createNostrRequest(
-            kinds: [KindsEnum::COMMENTS->value, KindsEnum::TEXT_NOTE->value],
+            kinds: [KindsEnum::COMMENTS->value],
             filters: ['tag' => ['#A', [$coordinate]]],
             relaySet: $relaySet
         );

@@ -31,6 +31,14 @@ class DefaultController extends AbstractController
         $mag = $this->redisCache->get('magazine-newsroom-magazine-by-newsroom', function (){
             return null;
         });
+
+        // Handle case when magazine is not found
+        if ($mag === null) {
+            return $this->render('home.html.twig', [
+                'indices' => []
+            ]);
+        }
+
         $tags = $mag->getTags();
 
         $cats = array_filter($tags, function($tag) {
