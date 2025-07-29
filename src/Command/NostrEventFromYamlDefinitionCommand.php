@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Enum\IndexStatusEnum;
 use App\Factory\ArticleFactory;
 use App\Service\NostrClient;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
 use swentel\nostr\Event\Event;
 use swentel\nostr\Sign\Sign;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -30,7 +28,6 @@ class NostrEventFromYamlDefinitionCommand extends Command
                                 private readonly NostrClient              $client,
                                 private readonly ArticleFactory           $factory,
                                 ParameterBagInterface                     $bag,
-                                private readonly ObjectPersisterInterface $itemPersister,
                                 private readonly EntityManagerInterface   $entityManager)
     {
         $this->nsec = $bag->get('nsec');
@@ -105,24 +102,12 @@ class NostrEventFromYamlDefinitionCommand extends Command
         $articles = [];
         foreach ($fresh as $item) {
             $article = $this->factory->createFromLongFormContentEvent($item);
-            $article->setIndexStatus(IndexStatusEnum::TO_BE_INDEXED);
             $this->entityManager->persist($article);
             $articles[] = $article;
         }
         $this->entityManager->flush();
 
-        // to elastic
-        if (count($articles) > 0 ) {
-            $this->itemPersister->insertMany($articles); // Insert or skip existing
-            // Set all articles as indexed
-            foreach ($articles as $article) {
-                $article->setIndexStatus(IndexStatusEnum::INDEXED);
-                $this->entityManager->persist($article);
-            }
-            $this->entityManager->flush();
-            $output->writeln('<info>Added to index.</info>');
-        }
-
+        $output->writeln('<info>Articles saved to database.</info>');
         $output->writeln('<info>Conversion complete.</info>');
         return Command::SUCCESS;
     }

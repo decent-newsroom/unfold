@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Elastica\Query;
-use Elastica\Query\Terms;
+use App\Repository\ArticleRepository;
 use Exception;
-use FOS\ElasticaBundle\Finder\FinderInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,7 +48,7 @@ class DefaultController extends AbstractController
      */
     #[Route('/cat/{slug}', name: 'magazine-category')]
     public function magCategory($slug, CacheInterface $redisCache,
-                                FinderInterface $finder,
+                                ArticleRepository $articleRepository,
                                 LoggerInterface $logger): Response
     {
         $catIndex = $redisCache->get('magazine-' . $slug, function (){
@@ -75,21 +73,15 @@ class DefaultController extends AbstractController
         }
 
         if (!empty($coordinates)) {
-            // Extract slugs for elasticsearch query
+            // Extract slugs for database query
             $slugs = array_map(function($coordinate) {
                 $parts = explode(':', $coordinate, 3);
                 return end($parts);
             }, $coordinates);
             $slugs = array_filter($slugs); // Remove empty values
 
-            // First filter to only include articles with the slugs we want
-            $termsQuery = new Terms('slug', array_values($slugs));
-
-            // Create a Query object to set the size parameter
-            $query = new Query($termsQuery);
-            $query->setSize(200); // Set size to exceed the number of articles we expect
-
-            $articles = $finder->find($query);
+            // Use database query instead of Elasticsearch
+            $articles = $articleRepository->findBySlugsCriteria($slugs);
 
             // Create a map of slug => item to remove duplicates
             $slugMap = [];
@@ -118,46 +110,26 @@ class DefaultController extends AbstractController
                 }
             }
 
-            // If we have missing articles, fetch them directly using NostrClient's getArticlesByCoordinates
+            // If we have missing articles, log them for now
             if (!empty($missingCoordinates)) {
-
                 $logger->info('There were missing articles', [
                     'missing' => $missingCoordinates
                 ]);
-
-//                try {
-//                    $nostrArticles = $nostrClient->getArticlesByCoordinates($missingCoordinates);
-//
-//                    foreach ($nostrArticles as $coordinate => $event) {
-//                        $parts = explode(':', $coordinate);
-//                        if (count($parts) === 3) {
-//                            $article = $articleFactory->createFromLongFormContentEvent($event);
-//                            // Save article to database for future queries
-//                            $nostrClient->saveEachArticleToTheDatabase($article);
-//                            // Add to the slugMap
-//                            $slugMap[$article->getSlug()] = $article;
-//                        }
-//                    }
-//                } catch (\Exception $e) {
-//                    $logger->error('Error fetching missing articles', [
-//                        'error' => $e->getMessage()
-//                    ]);
-//                }
+                // Note: Removed NostrClient fetching logic for simplification
             }
 
             // Build ordered list based on original coordinates order
             foreach ($coordinates as $coordinate) {
-                $parts = explode(':', $coordinate,3);
+                $parts = explode(':', $coordinate, 3);
                 if (isset($slugMap[end($parts)])) {
                     $list[] = $slugMap[end($parts)];
                 }
             }
         }
 
-        return $this->render('pages/category.html.twig', [
+        return $this->render('magazine-category.html.twig', [
             'list' => $list,
-            'category' => $category,
-            'index' => $catIndex
+            'category' => $category
         ]);
     }
 }

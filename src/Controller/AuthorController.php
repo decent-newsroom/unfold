@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Repository\ArticleRepository;
 use App\Service\NostrClient;
 use App\Service\RedisCacheService;
-use Elastica\Query\Terms;
 use Exception;
-use FOS\ElasticaBundle\Finder\FinderInterface;
 use swentel\nostr\Key\Key;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +19,7 @@ class AuthorController extends AbstractController
      * @throws Exception
      */
     #[Route('/p/{npub}', name: 'author-profile', requirements: ['npub' => '^npub1.*'])]
-    public function index($npub, NostrClient $nostrClient, RedisCacheService $redisCacheService, FinderInterface $finder): Response
+    public function index($npub, NostrClient $nostrClient, RedisCacheService $redisCacheService, ArticleRepository $articleRepository): Response
     {
         $keys = new Key();
         $pubkey = $keys->convertToHex($npub);
@@ -32,9 +31,10 @@ class AuthorController extends AbstractController
         } catch (Exception $e) {
             $list = [];
         }
-        // Also look for articles in the Elastica index
-        $query = new Terms('pubkey', [$pubkey]);
-        $list = array_merge($list, $finder->find($query, 25));
+
+        // Also look for articles in the database by pubkey
+        $dbArticles = $articleRepository->findByPubkey($pubkey, 25);
+        $list = array_merge($list, $dbArticles);
 
         $articles = [];
         // Deduplicate by slugs

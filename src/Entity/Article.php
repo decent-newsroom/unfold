@@ -3,18 +3,15 @@
 namespace App\Entity;
 
 use App\Enum\EventStatusEnum;
-use App\Enum\IndexStatusEnum;
 use App\Enum\KindsEnum;
 use App\Repository\ArticleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use FOS\ElasticaBundle\Provider\IndexableInterface;
 
 /**
  * Entity storing long-form articles
  * Needed beyond the Event entity, because of the local functionalities built on top of the original events
  * - editor
- * - indexing and search
  * NIP-23, kinds 30023, 30024
  */
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
@@ -66,9 +63,6 @@ class Article
 
     #[ORM\Column(nullable: true, enumType: EventStatusEnum::class)]
     private ?EventStatusEnum $eventStatus = EventStatusEnum::PREVIEW;
-
-    #[ORM\Column(nullable: true, enumType: IndexStatusEnum::class)]
-    private ?IndexStatusEnum $indexStatus = IndexStatusEnum::NOT_INDEXED;
 
     // Local properties
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -266,18 +260,6 @@ class Article
     public function setEventStatus(?EventStatusEnum $eventStatus): static
     {
         $this->eventStatus = $eventStatus;
-
-        return $this;
-    }
-
-    public function getIndexStatus(): ?IndexStatusEnum
-    {
-        return $this->indexStatus;
-    }
-
-    public function setIndexStatus(?IndexStatusEnum $indexStatus): static
-    {
-        $this->indexStatus = $indexStatus;
 
         return $this;
     }
