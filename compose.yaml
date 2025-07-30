@@ -28,6 +28,10 @@ services:
 
 
 ###> doctrine/doctrine-bundle ###
+  # ---
+  # The database service below is optional. If you use your own database (container or external),
+  # you can comment out or remove this block. Make sure to update the DATABASE_URL in the php service accordingly.
+  # ---
   database:
     image: mysql:${MYSQL_VERSION:-8.0}
     environment:
