@@ -32,8 +32,8 @@ final class SearchComponent
     #[LiveProp]
     public int $resultsPerPage = 12;
 
-    private const string SESSION_KEY = 'last_search_results';
-    private const string SESSION_QUERY_KEY = 'last_search_query';
+    private const SESSION_KEY = 'last_search_results';
+    private const SESSION_QUERY_KEY = 'last_search_query';
 
     public function __construct(
         private readonly ArticleRepository $articleRepository,

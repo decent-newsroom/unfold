@@ -26,7 +26,7 @@ class NostrClient
     /**
      * List of reputable relays in descending order of reputation
      */
-    private const array REPUTABLE_RELAYS = [
+    private const REPUTABLE_RELAYS = [
         'wss://theforest.nostr1.com',
     ];
 
