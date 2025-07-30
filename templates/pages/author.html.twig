@@ -21,39 +21,6 @@
 {#        {% endfor %}#}
 {#    {% endif %}#}
 
-
-{#    {% if app.user and app.user.userIdentifier is same as npub %}#}
-{#    <div id="invoice-component" class="p-4 bg-gray-100 rounded-lg">#}
-{#        <h3 class="text-xl font-semibold mb-4">Purchase Search Credits</h3>#}
-
-{#        <div class="mb-4">#}
-{#            <p>Amount: {{ amount ?? 0 }} sats</p>#}
-{#            <p>Status: <span id="payment-status">Pending</span></p>#}
-{#        </div>#}
-
-{#        #}{# You can access the width and height via the matrix #}
-{#        #}{# Replace the string with the invoice #}
-{#        {% set qrCode = qr_code_result('My QR Code') %}#}
-{#        <img src="{{ qrCode.dataUri }}" width="{{ qrCode.matrix.outerSize }}" alt="invoice-qr" />#}
-
-{#        <br>#}
-{#        <button id="check-payment" class="px-4 py-2 bg-blue-500 text-white rounded">Check Payment Status</button>#}
-
-{#        <script>#}
-{#            document.getElementById('check-payment').addEventListener('click', async () => {#}
-{#                const response = await fetch('/payment-status/{{ payment_hash ?? '' }}');#}
-{#                const data = await response.json();#}
-
-{#                if (data.status === 'paid') {#}
-{#                    document.getElementById('payment-status').innerText = 'Paid';#}
-{#                } else {#}
-{#                    document.getElementById('payment-status').innerText = 'Pending';#}
-{#                }#}
-{#            });#}
-{#        </script>#}
-{#    </div>#}
-{#    {% endif %}#}
-
     <twig:Organisms:CardList :list="articles" class="article-list"></twig:Organisms:CardList>
 {% endblock %}
 

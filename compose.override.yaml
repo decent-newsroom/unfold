@@ -21,9 +21,6 @@ services:
       - host.docker.internal:host-gateway
     tty: true
 
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
-
 ###> doctrine/doctrine-bundle ###
   database:
     restart: always
