@@ -23,21 +23,15 @@ class NostrClient
 {
     private RelaySet $defaultRelaySet;
 
-    /**
-     * List of reputable relays in descending order of reputation
-     */
-    private const REPUTABLE_RELAYS = [
-        'wss://theforest.nostr1.com',
-    ];
-
     public function __construct(private readonly EntityManagerInterface $entityManager,
-                                private readonly ManagerRegistry $managerRegistry,
-                                private readonly ArticleFactory $articleFactory,
-                                private readonly TokenStorageInterface $tokenStorage,
-                                private readonly LoggerInterface $logger)
+                                private readonly ManagerRegistry        $managerRegistry,
+                                private readonly ArticleFactory         $articleFactory,
+                                private readonly TokenStorageInterface  $tokenStorage,
+                                private readonly LoggerInterface        $logger,
+                                private readonly string                 $defaultRelayUrl)
     {
         $this->defaultRelaySet = new RelaySet();
-        $this->defaultRelaySet->addRelay(new Relay('wss://theforest.nostr1.com'));
+        $this->defaultRelaySet->addRelay(new Relay($this->defaultRelayUrl));
     }
 
     /**
@@ -68,26 +62,14 @@ class NostrClient
             $authorRelays = [];
         }
         if (empty($authorRelays)) {
-            return [self::REPUTABLE_RELAYS[0]]; // Default to theforest if no author relays
+            return [$this->defaultRelayUrl]; // Default to theforest if no author relays
         }
 
-        $reputableAuthorRelays = [];
-        foreach (self::REPUTABLE_RELAYS as $relay) {
-            if (in_array($relay, $authorRelays) && count($reputableAuthorRelays) < $limit) {
-                $reputableAuthorRelays[] = $relay;
-            }
-        }
-
-        // If no reputable relays found in author's list, take the top 3 from author's list
-        // But make sure they start with wss: and are not localhost
-        if (empty($reputableAuthorRelays)) {
-            $authorRelays = array_filter($authorRelays, function ($relay) {
-                return str_starts_with($relay, 'wss:') && !str_contains($relay, 'localhost');
-            });
-            return array_slice($authorRelays, 0, $limit);
-        }
-
-        return $reputableAuthorRelays;
+        // Can only keep wss relays
+        $authorRelays = array_filter($authorRelays, function ($relay) {
+            return str_starts_with($relay, 'wss:') && !str_contains($relay, 'localhost');
+        });
+        return array_slice($authorRelays, 0, $limit);
     }
 
     public function getNpubMetadata($npub): \stdClass
@@ -619,7 +601,7 @@ class NostrClient
 
             // If no author relays found, add default relay
             if (empty($relayList)) {
-                $relayList = [self::REPUTABLE_RELAYS[0]];
+                $relayList = [$this->defaultRelayUrl];
             }
 
             // Ensure we use a RelaySet
