@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{ app.session.get('theme', 'light') }}">
+<html lang="en" data-theme="{{ website_theme }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Decent Newsroom{% endblock %}</title>
-    <meta name="description" content="Decentralised Newsroom - the future of journalism">
+    <title>{% block title %}{{ website_name }}{% endblock %}</title>
+    <meta name="description" content="{{ website_description }}">
     <link rel="icon" type="image/png" href="{{ asset('icons/favicon-96x96.png') }}" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="{{ asset('icons/favicon.svg') }}" />
     <link rel="shortcut icon" href="{{ asset('icons/favicon.ico') }}" />
     <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
-    <meta name="apple-mobile-web-app-title" content="Newsroom" />
+    <meta name="apple-mobile-web-app-title" content="{{ website_short_name }}" />
 
     <link rel="manifest" href="{{ path('pwa_manifest') }}">
 

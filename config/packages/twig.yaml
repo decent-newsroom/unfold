@@ -1,5 +1,13 @@
 twig:
     file_name_pattern: '*.twig'
+    globals:
+        website_name: '%name%'
+        website_short_name: '%short_name%'
+        website_description: '%description%'
+        website_theme: '%theme%'
+        website_theme_color: '%theme_color%'
+        website_bg_color: '%theme_bg_color%'
+        magazine_community_articles: '%community_articles%'
 
 when@test:
     twig:

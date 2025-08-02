@@ -255,4 +255,24 @@ class ArticleController  extends AbstractController
         ]);
     }
 
+    /**
+     * Display latest 20 community articles
+     */
+    #[Route('/articles', name: 'articles')]
+    public function latestArticles(EntityManagerInterface $entityManager): Response
+    {
+        $articles = $entityManager->getRepository(Article::class)
+            ->findBy([], ['createdAt' => 'DESC'], 20);
+
+        $category = (object) [
+            'title' => 'Community Articles',
+            'summary' => 'Latest articles from the community',
+        ];
+
+        return $this->render('pages/category.html.twig', [
+            'category' => $category,
+            'list' => $articles,
+        ]);
+    }
+
 }

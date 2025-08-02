@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
+
+
+:root {
+    --color-bg: #1a1a1a;        /* Deep charcoal background */
+    --color-bg-light: #2a2a2a;  /* Slightly lighter charcoal */
+    --color-bg-primary: #2e1f2e; /* Muted aubergine for a rich, elegant feel */
+    --color-text: #f5f5f5;       /* Soft white for readability */
+    --color-text-mid: #d8d8d8;   /* Warm light gray */
+    --color-text-contrast: #000; /* Black text for contrast */
+    --color-primary: #5F7355;   /* Plum primary color */
+    --color-secondary: #495544; /*  secondary color */
+    --color-border: #3a3a3a;     /* Subtle gray border */
+    --font-family: 'Montserrat', serif; /* Set the Montserrat font as default */
+    --main-body-font: 'Newsreader', serif; /* Set the font for the main body */
+    --heading-font: 'EB Garamond', serif; /* Set the font for headings */
+    --brand-font: 'Lobster', serif; /* A classic, refined branding font */
+    --brand-color: white;
+}
+
+[data-theme="light"] {
+    --color-bg: #f4f1ee;
+    --color-bg-light: #e8e4df;
+    --color-text: #2a2a2a;
+    --color-text-mid: #3a3a3a;   /* Warm light gray */
+    --color-text-contrast: #f4f1ee;
+    --brand-color: black;
+}

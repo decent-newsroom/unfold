@@ -1,29 +1,10 @@
 # Features
 
-## Search Functionality (REMOVED)
-- **Status**: Being removed as part of scaling down
-- **Previous implementation**: Used Elasticsearch via FOSElasticaBundle
-- **Replacement**: Will need basic database-based search for articles by title/content if search is still needed
-- **Components affected**: 
-  - SearchComponent (Twig component)
-  - FeaturedList component
-  - Article indexing commands
-  - Controllers using Elasticsearch queries
-
-## Credit System (REMOVED)
-- **Status**: Completely removed as part of scaling down
-- **Previous implementation**: Credit-based search system with Redis storage
-- **Components removed**:
-  - Entire `src/Credits/` directory (CreditsManager, RedisCreditStore, CreditTransaction entity)
-  - GetCreditsComponent (Twig component for adding credits)
-  - CreditTransactionController (admin interface)
-  - Credit accounting in SearchComponent
-  - Credit balance display in search interface
-  - Credits cache configuration
-  - Credit translation keys
-
-## Core Features to Preserve
+## Core Features
 - Article management (CRUD operations)
 - Article display and listing
 - Author pages
-- Basic article filtering (should use database queries instead of Elasticsearch)
+- Basic article filtering (uses database queries)
+- Configurable magazine name and short name via YAML and .env
+- Theme selection (currently: purple)
+- Community articles feature (enable/disable via config)

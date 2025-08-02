@@ -1,0 +1,13 @@
+parameters:
+    name: 'Unfold Magazine'
+    short_name: 'Unfold'
+    description: 'Unfolding nostr magazines and community articles'
+    default_relay: 'wss://TheForest.nostr1.com'
+    theme: 'space'
+    theme_color: '#000000'
+    theme_bg_color: '#ffffff'
+    npub: 'npub1ez09adke4vy8udk3y2skwst8q5chjgqzym9lpq4u58zf96zcl7kqyry2lz'
+    d_tag: 'unfold-magazine'
+    community_articles: true
+
+

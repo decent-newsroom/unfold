@@ -2,6 +2,8 @@ framework:
     asset_mapper:
         # The paths to make available to the asset mapper.
         paths:
+            - assets/theme/local       # Highest priority (overrides)
+            - assets/theme/default     # Fallback if file not found in local
             - assets/
         missing_import_mode: strict
 

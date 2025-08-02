@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
 {% block ogtags %}
-    <meta property="og:title" content="{{ category.title }} - Newsroom">
+    <meta property="og:title" content="{{ category.title }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ app.request.uri }}">
     <meta property="og:description" content="{{ category.summary }}">
-    <meta property="og:site_name" content="Newsroom">
+    <meta property="og:site_name" content="{{ website_name }}">
 {% endblock %}
 
 {% block nav %}
@@ -16,6 +16,4 @@
 {% endblock %}
 
 {% block aside %}
-    {#    <h6>Magazines</h6>#}
-    {#    <twig:Organisms:ZineList />#}
 {% endblock %}
