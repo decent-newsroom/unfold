@@ -6,6 +6,9 @@
 imports:
     - { resource: unfold.yaml }
 
+parameters:
+    footer_links: '%kernel.project_dir%/config/unfold.yaml'
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -29,3 +32,7 @@ services:
     App\Service\NostrClient:
         arguments:
             $defaultRelayUrl: '%default_relay%'
+    App\Twig\FooterLinksExtension:
+        arguments:
+            $footerLinksPath: '%footer_links%'
+        tags: [ 'twig.extension' ]

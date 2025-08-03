@@ -9,5 +9,10 @@ parameters:
     npub: 'npub1ez09adke4vy8udk3y2skwst8q5chjgqzym9lpq4u58zf96zcl7kqyry2lz'
     d_tag: 'unfold-magazine'
     community_articles: true
-
-
+    external_links:
+      - title: "Unfold"
+        url: "https://github.com/decent-newsroom/unfold"
+        description: "Project source code on GitHub."
+      - title: "Decent Newsroom"
+        url: "https://decentnewsroom.com/"
+        description: "Decentralized magazine platform."
