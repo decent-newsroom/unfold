@@ -814,4 +814,25 @@ class NostrClient
             return null;
         }
     }
+
+    public function getMagazineIndex( $npub, $dTag)
+    {
+        $request = $this->createNostrRequest(
+            kinds: [KindsEnum::PUBLICATION_INDEX],
+            filters: ['authors' => [$npub], 'tag' => ['#d', [$dTag]]],
+        );
+        $response = $request->send();
+        $this->logger->info('Getting magazine index', ['npub' => $npub, 'dTag' => $dTag, 'response' => $response]);
+        $events = $this->processResponse($response, function($received) {
+            $this->logger->info('Received magazine index event', ['item' => $received]);
+            return $received;
+        });
+        if (empty($events)) {
+            $this->logger->warning('No magazine index found', ['npub' => $npub, 'dTag' => $dTag]);
+            return null;
+        }
+        // Sort by date and return the most recent
+        usort($events, fn($a, $b) => $b->created_at <=> $a->created_at);
+        return $events[0];
+    }
 }

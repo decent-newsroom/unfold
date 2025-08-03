@@ -6,7 +6,7 @@
     <div class="header__categories"  data-menu-target="menu">
         <ul>
             {% for category in cats %}
-                <li><twig:Molecules:CategoryLink coordinate="{{ category }}" /></li>
+                <li><twig:Molecules:CategoryLink category="{{ category }}" /></li>
             {% endfor %}
             {% if magazine_community_articles %}
                 <li>

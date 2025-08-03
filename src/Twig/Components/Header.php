@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
@@ -16,9 +17,10 @@ class Header
     /**
      * @throws InvalidArgumentException
      */
-    public function __construct(private readonly CacheInterface $cache)
+    public function __construct(private readonly CacheInterface $cache, private readonly ParameterBagInterface $params)
     {
-        $mag = $this->cache->get('magazine-newsroom-magazine-by-newsroom', function (){
+        $dTag = $this->params->get('d_tag');
+        $mag = $this->cache->get('magazine-' . $dTag, function (){
             return null;
         });
 

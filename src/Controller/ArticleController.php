@@ -261,6 +261,9 @@ class ArticleController  extends AbstractController
     #[Route('/articles', name: 'articles')]
     public function latestArticles(EntityManagerInterface $entityManager): Response
     {
+        set_time_limit(300); // 5 minutes
+        ini_set('max_execution_time', '300');
+
         $articles = $entityManager->getRepository(Article::class)
             ->findBy([], ['createdAt' => 'DESC'], 20);
 

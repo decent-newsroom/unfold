@@ -18,6 +18,7 @@ final class CategoryLink
     public function mount($category): void
     {
         $parts = explode(':', $category[1]);
+        $this->slug = $parts[2];
         try {
             $cat = $this->cache->get('magazine-' . $parts[2], function (){
                 throw new \Exception('Not found');
