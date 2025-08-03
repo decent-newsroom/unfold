@@ -16,11 +16,11 @@
     {% block ogtags %}
         <meta property="og:image" content="{{ asset('icons/favicon.ico') }}" />
     {% endblock %}
-
-    {% block stylesheets %}
-    {% endblock %}
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('theme.css') }}">
     {% endblock %}
 </head>
 <body data-controller="service-worker">

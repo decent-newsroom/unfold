@@ -1,5 +1,5 @@
 parameters:
-    name: 'Unfold Magazine'
+    name: 'Unfold Demo'
     short_name: 'Unfold'
     description: 'Unfolding nostr magazines and community articles'
     default_relay: 'wss://TheForest.nostr1.com'

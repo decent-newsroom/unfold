@@ -32,7 +32,8 @@ h1.brand {
 
 
 
-h1.brand a {
+h1.brand a,
+.publisher a {
     color: var(--brand-color);
 }
 

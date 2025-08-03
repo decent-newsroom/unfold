@@ -5,13 +5,14 @@ export default class extends Controller {
   static targets = ["bar"];
 
   connect() {
-    document.addEventListener("click", this.handleInteraction);
+    this.boundHandleInteraction = this.handleInteraction.bind(this);
+    document.addEventListener("click", this.boundHandleInteraction);
     document.addEventListener("touchstart", this.handleTouchStart);
     document.addEventListener("touchend", this.handleTouchEnd);
   }
 
   disconnect() {
-    document.removeEventListener("click", this.handleInteraction);
+    document.removeEventListener("click", this.boundHandleInteraction);
     document.removeEventListener("touchstart", this.handleTouchStart);
     document.removeEventListener("touchend", this.handleTouchEnd);
   }

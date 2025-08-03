@@ -1,6 +1,7 @@
 twig:
     file_name_pattern: '*.twig'
     globals:
+        publisher_npub: '%npub%'
         website_name: '%name%'
         website_short_name: '%short_name%'
         website_description: '%description%'

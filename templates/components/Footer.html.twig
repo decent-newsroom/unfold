@@ -9,5 +9,5 @@
     {% endfor %}
 </div>
 
-<p>{{ "now"|date("Y") }} {{ website_name }}</p>
+<p>{{ "now"|date("Y") }} {{ website_name }} <span class="publisher">by <twig:Molecules:UserFromNpub :ident="publisher_npub" /></span></p>
 
