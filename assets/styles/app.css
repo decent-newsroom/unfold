@@ -28,6 +28,7 @@ h1 {
 h1.brand {
     font-family: var(--brand-font), serif;
     font-size: 3.6rem;
+    color: var(--brand-color);
 }
 
 
@@ -297,7 +298,8 @@ div:nth-child(odd) .featured-list {
 }
 
 .header__logo img {
-    height: 40px; /* Adjust the height as needed */
+    height: 60px;
+    vertical-align: bottom;
 }
 
 .header__logo a:hover {
@@ -508,5 +510,10 @@ label.search {
 @media (max-width: 600px) {
     h1.brand {
         font-size: 2.2rem;
+    }
+
+    .header__logo img {
+        height: 40px;
+        vertical-align: bottom;
     }
 }
